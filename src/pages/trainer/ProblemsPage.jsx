@@ -40,7 +40,7 @@ ${(problem.suggestedTech || []).join(', ') || 'N/A'}
 ${(problem.tags || []).join(', ') || 'N/A'}
 
 --------------------------------------------------
-Generated from CapstoneHub on ${new Date().toLocaleString()}
+Generated from Ethnotech ProjectSpace on ${new Date().toLocaleString()}
 ==================================================`;
 
   const element = document.createElement("a");

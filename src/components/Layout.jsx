@@ -127,8 +127,8 @@ export default function Layout() {
           >
             {/* Logo */}
             <div style={{ marginBottom: 28, padding: '0 4px' }}>
-              <div className="gradient-text" style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5 }}>
-                CapstoneHub
+              <div className="gradient-text" style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>
+                Ethnotech ProjectSpace
               </div>
               <div style={{ color: '#475569', fontSize: 11, marginTop: 2 }}>
                 {isTrainer() ? 'Trainer Portal' : 'Team Portal'}

@@ -17,7 +17,7 @@ export function PageLoader() {
     }}>
       <div className="text-center">
         <div className="spinner mx-auto mb-4" />
-        <p style={{ color: '#5c5c7b', fontSize: 14 }}>Loading CapstoneHub...</p>
+        <p style={{ color: '#5c5c7b', fontSize: 14 }}>Loading Ethnotech ProjectSpace...</p>
       </div>
     </div>
   )

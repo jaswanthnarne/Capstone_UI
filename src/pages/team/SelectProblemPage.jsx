@@ -35,7 +35,7 @@ ${problem.outcome}
 ${(problem.suggestedTech || []).join(', ') || 'N/A'}
 
 --------------------------------------------------
-Generated from CapstoneHub on ${new Date().toLocaleString()}
+Generated from Ethnotech ProjectSpace on ${new Date().toLocaleString()}
 ==================================================`;
 
   const element = document.createElement("a");

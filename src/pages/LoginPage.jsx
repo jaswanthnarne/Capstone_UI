@@ -136,7 +136,7 @@ export default function LoginPage() {
             }}>
               <Sparkles size={18} style={{ color: '#2563eb' }} />
               <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#2563eb' }}>
-                CapstoneHub
+                Ethnotech ProjectSpace
               </span>
             </div>
 
@@ -292,7 +292,7 @@ export default function LoginPage() {
           </form>
 
           <p style={{ textAlign: 'center', color: '#64748b', fontSize: '11px', marginTop: '28px' }}>
-            CapstoneHub — Secure Unified Workspace Entrance.
+            Ethnotech ProjectSpace — Secure Unified Workspace Entrance.
           </p>
 
           <style>{`
