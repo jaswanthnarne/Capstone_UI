@@ -18,6 +18,7 @@ const ProblemsPage = lazy(() => import('./pages/trainer/ProblemsPage'))
 const TeamsPage = lazy(() => import('./pages/trainer/TeamsPage'))
 const EvaluationsPage = lazy(() => import('./pages/trainer/EvaluationsPage'))
 const ReportsPage = lazy(() => import('./pages/trainer/ReportsPage'))
+const DocRequestsPage = lazy(() => import('./pages/trainer/DocRequestsPage'))
 
 // Team pages
 const TeamHomePage = lazy(() => import('./pages/team/TeamHomePage'))
@@ -28,6 +29,8 @@ const SubmitPage = lazy(() => import('./pages/team/SubmitPage'))
 const EvaluationPage = lazy(() => import('./pages/team/EvaluationPage'))
 const ProfilePage = lazy(() => import('./pages/team/ProfilePage'))
 const CalendarPage = lazy(() => import('./pages/team/CalendarPage'))
+const DailyLogsPage = lazy(() => import('./pages/team/DailyLogsPage'))
+const DocSubmissionsPage = lazy(() => import('./pages/team/DocSubmissionsPage'))
 
 // Route guards
 function RequireAuth({ children }) {
@@ -77,6 +80,7 @@ export default function App() {
           <Route path="teams" element={<TeamsPage />} />
           <Route path="evaluations" element={<EvaluationsPage />} />
           <Route path="reports" element={<ReportsPage />} />
+          <Route path="doc-requests" element={<DocRequestsPage />} />
         </Route>
 
         {/* Team Lead routes */}
@@ -90,6 +94,8 @@ export default function App() {
           <Route path="evaluation" element={<EvaluationPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="calendar" element={<CalendarPage />} />
+          <Route path="daily-logs" element={<DailyLogsPage />} />
+          <Route path="doc-submissions" element={<DocSubmissionsPage />} />
         </Route>
 
         {/* Catch-all */}

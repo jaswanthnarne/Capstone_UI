@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Building2, BookOpen, Users, Layers, FileText,
   Award, BarChart3, LogOut, ChevronRight, Menu, X, GraduationCap,
-  GitBranch, Send, Star, Mail, User, Calendar
+  GitBranch, Send, Star, Mail, User, Calendar, Upload, ClipboardList, UploadCloud
 } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 
@@ -17,6 +17,7 @@ const trainerNav = [
   { label: 'Teams', icon: Users, to: '/trainer/teams' },
   { label: 'Evaluations', icon: Award, to: '/trainer/evaluations' },
   { label: 'Reports', icon: BarChart3, to: '/trainer/reports' },
+  { label: 'Doc Requests', icon: Upload, to: '/trainer/doc-requests' },
 ]
 
 const teamNav = [
@@ -25,6 +26,8 @@ const teamNav = [
   { label: 'Select Problem', icon: FileText, to: '/team/problems' },
   { label: 'Milestones', icon: GitBranch, to: '/team/milestones' },
   { label: 'Todo Calendar', icon: Calendar, to: '/team/calendar' },
+  { label: 'Daily Logs', icon: ClipboardList, to: '/team/daily-logs' },
+  { label: 'Doc Submissions', icon: UploadCloud, to: '/team/doc-submissions' },
   { label: 'Submit', icon: Send, to: '/team/submit' },
   { label: 'Evaluation', icon: Star, to: '/team/evaluation' },
   { label: 'Profile', icon: User, to: '/team/profile' },
