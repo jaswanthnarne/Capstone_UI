@@ -8,13 +8,20 @@ import useAuthStore from '../store/authStore'
 import IconCloud from '../components/ui/interactive-icon-cloud'
 
 const slugs = [
+  // Languages & Core Web
   "typescript", "javascript", "java", "spring", "springboot", "python", "django", "flask",
   "react", "angular", "vue", "svelte", "nextdotjs", "nuxtdotjs", "html5", "css3", "nodedotjs",
-  "express", "mongodb", "postgresql", "mysql", "sqlite", "docker", "kubernetes", "git",
-  "github", "gitlab", "vercel", "amazonaws", "googlecloud", "azure", "firebase", "heroku",
-  "netlify", "figma", "visualstudiocode", "intellijidea", "android", "ios", "kotlin",
-  "swift", "flutter", "dart", "redux", "tailwindcss", "bootstrap", "graphql", "apollo",
-  "prisma", "sequelize"
+  "express", "graphql", "bootstrap", "tailwindcss", "redux", "dart", "flutter",
+  // Databases
+  "mongodb", "postgresql", "mysql", "sqlite", "prisma", "sequelize",
+  // Cloud & Media Hosting
+  "amazonaws", "microsoftazure", "googlecloud", "digitalocean", "vercel", "netlify", "heroku", "cloudinary", "firebase",
+  // Developer Tools & Testing
+  "postman", "git", "github", "gitlab", "docker", "kubernetes", "jenkins", "terraform", "ansible",
+  // AI / ML / Data Science
+  "tensorflow", "pytorch", "scikitlearn", "pandas", "numpy", "jupyter", "keras", "anaconda",
+  // Cyber Security & Splunk
+  "splunk", "wireshark", "kali", "owasp", "fortinet", "paloaltonetworks", "metasploit"
 ];
 
 export default function LoginPage() {
