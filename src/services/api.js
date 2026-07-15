@@ -117,12 +117,14 @@ export const deleteBatchTemplate = (batchId, templateId) =>
 export const saveDailyLog = (data) => api.post('/daily-logs', data)
 export const getMyDailyLogs = () => api.get('/daily-logs/me')
 export const getTeamDailyLogs = (teamId) => api.get(`/daily-logs/team/${teamId}`)
+export const resetDailyLogLimit = (data) => api.post('/daily-logs/trainer/reset', data)
 
 // ─── Document Requests ─────────────────────────────────────────────────────────
 export const createDocRequest = (data) => api.post('/doc-requests/trainer', data)
 export const getTrainerDocRequests = () => api.get('/doc-requests/trainer')
 export const deleteDocRequest = (id) => api.delete(`/doc-requests/trainer/${id}`)
 export const getRequestSubmissions = (requestId) => api.get(`/doc-requests/trainer/submissions/${requestId}`)
+export const resetSubmissionLimit = (data) => api.post('/doc-requests/trainer/reset', data)
 export const getTeamDocRequests = () => api.get('/doc-requests/team')
 export const submitDocRequest = (formData) =>
   api.post('/doc-requests/team/submit', formData, { headers: { 'Content-Type': 'multipart/form-data' } })

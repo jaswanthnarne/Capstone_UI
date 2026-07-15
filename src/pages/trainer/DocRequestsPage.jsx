@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, Eye, Download, FileText, X, AlertCircle, FileSpreadsheet, Upload } from 'lucide-react'
+import { Plus, Trash2, Eye, Download, FileText, X, AlertCircle, FileSpreadsheet, Upload, RotateCcw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { 
   getTrainerDocRequests, 
@@ -8,7 +8,8 @@ import {
   deleteDocRequest, 
   getRequestSubmissions,
   getBatches,
-  getAllTeams
+  getAllTeams,
+  resetSubmissionLimit
 } from '../../services/api'
 
 export default function DocRequestsPage() {
@@ -123,6 +124,25 @@ export default function DocRequestsPage() {
       toast.error('Failed to load submissions')
     } finally {
       setSubmissionsLoading(false)
+    }
+  }
+
+  const handleResetLimit = async (teamId) => {
+    if (!window.confirm('Are you sure you want to reset the upload edit count for this team?')) return
+    
+    try {
+      await resetSubmissionLimit({ teamId, requestId: activeRequest._id })
+      
+      setSubmissions(submissions.map(s => {
+        if (s.teamId?._id === teamId) {
+          return { ...s, changeCount: 0 }
+        }
+        return s
+      }))
+      
+      toast.success('Upload limit reset successfully!')
+    } catch (err) {
+      toast.error('Failed to reset upload limit')
     }
   }
 
@@ -396,8 +416,9 @@ export default function DocRequestsPage() {
                           <th className="p-3">Team Name</th>
                           <th className="p-3">File Name</th>
                           <th className="p-3">Size</th>
+                          <th className="p-3">Upload Count</th>
                           <th className="p-3">Date Uploaded</th>
-                          <th className="p-3 text-right">Action</th>
+                          <th className="p-3 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -407,25 +428,35 @@ export default function DocRequestsPage() {
                             <td className="p-3 truncate max-w-xs text-slate-600" title={sub.fileName}>
                               {sub.fileName}
                             </td>
-                            <td className="p-3 text-slate-500 text-xs">{sub.fileSize} MB</td>
-                            <td className="p-3 text-slate-500 text-xs">
-                              {new Date(sub.createdAt).toLocaleDateString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </td>
-                            <td className="p-3 text-right">
-                              <a
-                                href={sub.fileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800"
-                              >
-                                <Download size={13} /> Download
-                              </a>
-                            </td>
+                             <td className="p-3 text-slate-500 text-xs">{sub.fileSize} MB</td>
+                             <td className="p-3 text-slate-600 text-xs font-semibold">
+                               {sub.changeCount || 0} / 3 uploads
+                             </td>
+                             <td className="p-3 text-slate-500 text-xs">
+                               {new Date(sub.createdAt).toLocaleDateString('en-US', {
+                                 month: 'short',
+                                 day: 'numeric',
+                                 hour: '2-digit',
+                                 minute: '2-digit'
+                               })}
+                             </td>
+                             <td className="p-3 text-right flex items-center justify-end gap-3">
+                               <a
+                                 href={sub.fileUrl}
+                                 target="_blank"
+                                 rel="noreferrer"
+                                 className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800"
+                               >
+                                 <Download size={13} /> Download
+                               </a>
+                               <button
+                                 onClick={() => handleResetLimit(sub.teamId?._id)}
+                                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 hover:text-amber-800 bg-amber-50 px-2 py-1 rounded border border-amber-200"
+                                 title="Reset Upload Limit"
+                               >
+                                 <RotateCcw size={12} /> Reset Limit
+                               </button>
+                             </td>
                           </tr>
                         ))}
                       </tbody>

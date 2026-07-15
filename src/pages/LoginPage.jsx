@@ -5,7 +5,33 @@ import { Eye, EyeOff, Lock, User, Sparkles, LogIn } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { unifiedLogin } from '../services/api'
 import useAuthStore from '../store/authStore'
-import BackgroundShapes from '../components/ui/background-shapes'
+import IconCloud from '../components/ui/interactive-icon-cloud'
+
+const slugs = [
+  "typescript",
+  "javascript",
+  "java",
+  "spring",
+  "springboot",
+  "python",
+  "django",
+  "flask",
+  "react",
+  "html5",
+  "css3",
+  "nodedotjs",
+  "express",
+  "mongodb",
+  "postgresql",
+  "mysql",
+  "docker",
+  "git",
+  "github",
+  "vercel",
+  "amazonaws",
+  "redux",
+  "tailwindcss"
+];
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
@@ -95,7 +121,9 @@ export default function LoginPage() {
             opacity: 0.25,
             pointerEvents: 'none'
           }}>
-            <BackgroundShapes width={600} height={600} colors={["#ffffff"]} minInterval={1500} maxInterval={4000} />
+            <div style={{ width: '100%', maxWidth: '340px' }}>
+              <IconCloud iconSlugs={slugs} />
+            </div>
           </div>
 
           <div style={{ zIndex: 2 }}>

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import {
   getAllTeams, getColleges, getBatches, getSubjects, createTeam,
   getProblems, getTeamMilestones, getAllSubmissions, getAllEvaluations,
-  adminOverrideTeam, deleteTeam
+  adminOverrideTeam, deleteTeam, getTeamDailyLogs, resetDailyLogLimit
 } from '../../services/api'
 import { EmptyState, SectionHeader, StatusBadge, LoadingSpinner, Modal, FormField } from '../../components/ui'
 import { useNavigate } from 'react-router-dom'
@@ -62,11 +62,35 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [dailyLogs, setDailyLogs] = useState([])
+  const [selectedLogDate, setSelectedLogDate] = useState('')
+  const [logsLoading, setLogsLoading] = useState(false)
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const addMember = () => setMembers(m => [...m, { name: '', rollNumber: '', email: '' }])
   const removeMember = (i) => setMembers(m => m.filter((_, idx) => idx !== i))
   const updateMember = (i, k, v) => setMembers(m => m.map((item, idx) => idx === i ? { ...item, [k]: v } : item))
+
+  const loadLogs = async () => {
+    setLogsLoading(true)
+    try {
+      const res = await getTeamDailyLogs(team._id)
+      setDailyLogs(res.data.data)
+      if (res.data.data.length > 0) {
+        setSelectedLogDate(res.data.data[0].date)
+      }
+    } catch (err) {
+      toast.error('Failed to load daily logs')
+    } finally {
+      setLogsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'logs') {
+      loadLogs()
+    }
+  }, [activeTab])
 
   useEffect(() => {
     if (team) {
@@ -160,6 +184,18 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
           }}
         >
           Project Analysis & Status
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('logs')}
+          style={{
+            background: 'none', border: 'none', color: activeTab === 'logs' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+            padding: '8px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            borderBottom: activeTab === 'logs' ? '2px solid var(--color-accent)' : '2px solid transparent',
+            marginBottom: '-1px'
+          }}
+        >
+          Daily Work Logs
         </button>
       </div>
 
@@ -325,6 +361,81 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {activeTab === 'logs' && (
+        <div>
+          <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>Daily Work Logs</h4>
+          {logsLoading ? (
+            <div style={{ padding: '20px 0', textAlign: 'center' }}><LoadingSpinner /></div>
+          ) : dailyLogs.length === 0 ? (
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>No daily work logs submitted by this team yet.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>Select Date:</label>
+                <select 
+                  className="input-dark" 
+                  style={{ width: 'auto', padding: '6px 12px' }} 
+                  value={selectedLogDate} 
+                  onChange={e => setSelectedLogDate(e.target.value)}
+                >
+                  {dailyLogs.map(l => (
+                    <option key={l.date} value={l.date}>{l.date}</option>
+                  ))}
+                </select>
+              </div>
+
+              {(() => {
+                const log = dailyLogs.find(l => l.date === selectedLogDate)
+                if (!log) return null
+                return (
+                  <div className="glass" style={{ borderRadius: 12, padding: 18 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: 10 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Logs for {log.date}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                          Edit Count: <strong style={{ color: log.changeCount >= 3 ? '#ef4444' : 'var(--color-text-primary)' }}>{log.changeCount}/3</strong>
+                        </span>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          style={{ padding: '4px 10px', fontSize: 11 }}
+                          onClick={async () => {
+                            if (!window.confirm(`Reset edit limit for log date ${log.date}?`)) return
+                            try {
+                              await resetDailyLogLimit({ teamId: team._id, date: log.date })
+                              toast.success('Edit count reset successfully!')
+                              loadLogs()
+                            } catch (err) {
+                              toast.error('Failed to reset log edit limit')
+                            }
+                          }}
+                        >
+                          Reset Limit
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {log.logs.map((item, keyIdx) => (
+                        <div key={keyIdx} style={{ padding: 10, background: 'rgba(0,0,0,0.01)', border: '1px solid rgba(0,0,0,0.04)', borderRadius: 8 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 4 }}>
+                            <span>{item.name}</span>
+                            <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{item.rollNumber}</span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'pre-wrap' }}>
+                            {item.taskDone || '(No work logged)'}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
+          )}
         </div>
       )}
     </div>

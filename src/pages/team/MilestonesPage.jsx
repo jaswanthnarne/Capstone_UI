@@ -4,7 +4,6 @@ import { Check, Clock, Zap, AlertCircle, Lightbulb, FileText, Code2, Search, Sen
 import toast from 'react-hot-toast'
 import { getMyMilestones, updateMyMilestone } from '../../services/api'
 import { LoadingSpinner } from '../../components/ui'
-import MilestoneConstellation from '../../components/three/MilestoneConstellation'
 
 const STAGES = [
   { name: 'Idea Approved', icon: Lightbulb, desc: 'Team concept and project idea approved by trainer' },
@@ -63,25 +62,7 @@ export default function MilestonesPage() {
         </p>
       </div>
 
-      {/* 3D Milestone Constellation Visualizer */}
-      <MilestoneConstellation
-        stages={STAGES.map(stage => {
-          const ms = getMs(stage.name)
-          const status = ms?.status || 'pending'
-          return {
-            label: stage.name,
-            status: status === 'done' ? 'done' : status === 'in_progress' ? 'current' : 'pending'
-          }
-        })}
-        onStageClick={(stageName) => {
-          const index = STAGES.findIndex(s => s.name === stageName)
-          if (index !== -1) {
-            setActiveStage(stageName)
-            const el = document.getElementById(`milestone-${index}`)
-            el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          }
-        }}
-      />
+
 
       {/* Stage cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { UploadCloud, CheckCircle, Clock, AlertTriangle, FileText, ExternalLink, Download } from 'lucide-react'
+import { UploadCloud, CheckCircle, Clock, AlertTriangle, FileText, Download, Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getTeamDocRequests, submitDocRequest } from '../../services/api'
 
@@ -55,7 +55,7 @@ export default function DocSubmissionsPage() {
     try {
       const res = await submitDocRequest(formData)
       
-      // Update local state to show uploaded file info
+      // Update local state to show uploaded file info and updated changeCount
       const updatedRequests = requests.map(req => {
         if (req._id === requestId) {
           return {
@@ -64,6 +64,7 @@ export default function DocSubmissionsPage() {
               fileUrl: res.data.data.fileUrl,
               fileName: res.data.data.fileName,
               fileSize: res.data.data.fileSize,
+              changeCount: res.data.data.changeCount || 1,
               submittedAt: new Date().toISOString()
             }
           }
@@ -107,15 +108,25 @@ export default function DocSubmissionsPage() {
         <div className="space-y-6">
           {requests.map((reqItem) => {
             const hasSubmission = !!reqItem.submission
+            const changeCount = hasSubmission ? reqItem.submission.changeCount || 0 : 0
+            const isLocked = changeCount >= 3
+
             return (
               <div 
                 key={reqItem._id}
-                className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
+                className={`bg-white border rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-6
+                  ${isLocked ? 'border-rose-200 bg-rose-50/5' : 'border-slate-200'}
+                `}
               >
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-2.5 flex-wrap">
                     <h3 className="font-bold text-slate-800 text-lg leading-tight">{reqItem.title}</h3>
-                    {hasSubmission ? (
+                    
+                    {isLocked ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-100">
+                        <Lock size={11} /> Locked (Limit Reached)
+                      </span>
+                    ) : hasSubmission ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
                         <CheckCircle size={11} /> Uploaded
                       </span>
@@ -131,6 +142,14 @@ export default function DocSubmissionsPage() {
                     <span>Format: <span className="uppercase text-slate-700">{reqItem.fileType}</span></span>
                     <span className="text-slate-200">|</span>
                     <span>Max Size: <span className="text-slate-700">{reqItem.maxSize} MB</span></span>
+                    {hasSubmission && (
+                      <>
+                        <span className="text-slate-200">|</span>
+                        <span>
+                          Uploads: <span className={isLocked ? 'text-rose-600 font-bold' : 'text-slate-700'}>{changeCount}/3</span>
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   {hasSubmission && (
@@ -150,37 +169,54 @@ export default function DocSubmissionsPage() {
                       </a>
                     </div>
                   )}
+                  
+                  {isLocked && (
+                    <div className="text-xs text-rose-600 font-medium flex items-center gap-1 mt-3">
+                      <AlertTriangle size={13} />
+                      <span>Upload limit reached (3/3). Please contact your trainer/administrator to reset your limit.</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Upload Button area */}
                 <div className="shrink-0 flex items-center justify-end">
-                  <label className={`
-                    cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-200
-                    ${hasSubmission 
-                      ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700' 
-                      : 'bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-sm shadow-blue-600/10'
-                    }
-                    ${uploadingId === reqItem._id ? 'opacity-65 pointer-events-none' : ''}
-                  `}>
-                    <input 
-                      type="file"
-                      className="hidden"
-                      onChange={e => handleFileUpload(reqItem._id, e.target.files[0], reqItem)}
-                      disabled={uploadingId === reqItem._id}
-                      accept={
-                        reqItem.fileType === 'pdf' ? '.pdf' :
-                        reqItem.fileType === 'zip' ? '.zip,.rar,.7z' :
-                        reqItem.fileType === 'doc' ? '.doc,.docx' :
-                        '*'
+                  {isLocked ? (
+                    <button 
+                      disabled
+                      className="bg-slate-100 border border-slate-200 text-slate-400 px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 cursor-not-allowed shadow-none"
+                    >
+                      <Lock size={16} />
+                      <span>Upload Locked</span>
+                    </button>
+                  ) : (
+                    <label className={`
+                      cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-200
+                      ${hasSubmission 
+                        ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700' 
+                        : 'bg-blue-600 hover:bg-blue-700 border-blue-600 text-white shadow-sm shadow-blue-600/10'
                       }
-                    />
-                    {uploadingId === reqItem._id ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-                    ) : (
-                      <UploadCloud size={16} />
-                    )}
-                    <span>{hasSubmission ? 'Re-upload Document' : 'Upload Document'}</span>
-                  </label>
+                      ${uploadingId === reqItem._id ? 'opacity-65 pointer-events-none' : ''}
+                    `}>
+                      <input 
+                        type="file"
+                        className="hidden"
+                        onChange={e => handleFileUpload(reqItem._id, e.target.files[0], reqItem)}
+                        disabled={uploadingId === reqItem._id}
+                        accept={
+                          reqItem.fileType === 'pdf' ? '.pdf' :
+                          reqItem.fileType === 'zip' ? '.zip,.rar,.7z' :
+                          reqItem.fileType === 'doc' ? '.doc,.docx' :
+                          '*'
+                        }
+                      />
+                      {uploadingId === reqItem._id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                      ) : (
+                        <UploadCloud size={16} />
+                      )}
+                      <span>{hasSubmission ? 'Re-upload Document' : 'Upload Document'}</span>
+                    </label>
+                  )}
                 </div>
               </div>
             )
