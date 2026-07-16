@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Lock, Sparkles, CheckCircle2 } from 'lucide-react'
@@ -30,6 +30,10 @@ export default function ResetPasswordPage() {
   const [showPass, setShowPass] = useState(false)
   const [form, setForm] = useState({ newPassword: '', confirmPassword: '' })
   const [success, setSuccess] = useState(false)
+
+  const memoizedCloud = useMemo(() => (
+    <IconCloud iconSlugs={slugs} />
+  ), [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -94,7 +98,7 @@ export default function ResetPasswordPage() {
         {/* Left Side: Dense Cloud */}
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div style={{ width: '100%', maxWidth: '500px' }}>
-            <IconCloud iconSlugs={slugs} />
+            {memoizedCloud}
           </div>
         </div>
 

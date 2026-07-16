@@ -4,7 +4,8 @@ import toast from 'react-hot-toast'
 import {
   getAllTeams, getColleges, getBatches, getSubjects, createTeam,
   getProblems, getTeamMilestones, getAllSubmissions, getAllEvaluations,
-  adminOverrideTeam, deleteTeam, getTeamDailyLogs, resetDailyLogLimit
+  adminOverrideTeam, deleteTeam, getTeamDailyLogs, resetDailyLogLimit,
+  gradeDailyLog, releaseDailyLogScore, getTeamDocSubmissions, resetSubmissionLimit
 } from '../../services/api'
 import { EmptyState, SectionHeader, StatusBadge, LoadingSpinner, Modal, FormField } from '../../components/ui'
 import { useNavigate } from 'react-router-dom'
@@ -65,6 +66,7 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
   const [dailyLogs, setDailyLogs] = useState([])
   const [selectedLogDate, setSelectedLogDate] = useState('')
   const [logsLoading, setLogsLoading] = useState(false)
+  const [logGradeInputs, setLogGradeInputs] = useState({})
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const addMember = () => setMembers(m => [...m, { name: '', rollNumber: '', email: '' }])
@@ -86,9 +88,27 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
     }
   }
 
+  const [docSubmissions, setDocSubmissions] = useState([])
+  const [docsLoading, setDocsLoading] = useState(false)
+
+  const loadDocs = async () => {
+    setDocsLoading(true)
+    try {
+      const res = await getTeamDocSubmissions(team._id)
+      setDocSubmissions(res.data.data || [])
+    } catch (err) {
+      toast.error('Failed to load document submissions')
+    } finally {
+      setDocsLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (activeTab === 'logs') {
       loadLogs()
+    }
+    if (activeTab === 'docs') {
+      loadDocs()
     }
   }, [activeTab])
 
@@ -196,6 +216,18 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
           }}
         >
           Daily Work Logs
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('docs')}
+          style={{
+            background: 'none', border: 'none', color: activeTab === 'docs' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+            padding: '8px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            borderBottom: activeTab === 'docs' ? '2px solid var(--color-accent)' : '2px solid transparent',
+            marginBottom: '-1px'
+          }}
+        >
+          Uploaded Documents
         </button>
       </div>
 
@@ -415,6 +447,82 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                         >
                           Reset Limit
                         </button>
+                    </div>
+
+                    {/* Daily Log Grading Section */}
+                    <div style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 16,
+                      background: 'rgba(37, 99, 235, 0.04)',
+                      border: '1px solid rgba(37, 99, 235, 0.1)',
+                      borderRadius: 10,
+                      padding: 14,
+                      marginBottom: 16
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>Grade Daily Log:</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="Score (0-100)"
+                          value={logGradeInputs[log.date] !== undefined ? logGradeInputs[log.date] : (log.score !== null ? log.score : '')}
+                          onChange={e => setLogGradeInputs({ ...logGradeInputs, [log.date]: e.target.value })}
+                          style={{ width: 110, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: 12, background: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
+                        />
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          style={{ padding: '4px 10px', fontSize: 11 }}
+                          onClick={async () => {
+                            const scoreVal = logGradeInputs[log.date]
+                            if (scoreVal === undefined || scoreVal === '') return toast.error('Please enter a score')
+                            try {
+                              await gradeDailyLog({ teamId: team._id, date: log.date, score: Number(scoreVal) })
+                              toast.success('Grade saved successfully!')
+                              loadLogs()
+                            } catch (err) {
+                              toast.error('Failed to save daily log grade')
+                            }
+                          }}
+                        >
+                          Save Grade
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                          Status: <strong>{log.score !== null ? `Graded (${log.score}/100)` : 'Not Graded'}</strong>
+                        </span>
+                        <button
+                          type="button"
+                          className={log.isScoreReleased ? 'btn-danger' : 'btn-success'}
+                          style={{
+                            padding: '4px 10px',
+                            fontSize: 11,
+                            background: log.isScoreReleased ? '#ef4444' : '#10b981',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: 6,
+                            cursor: 'pointer',
+                            fontWeight: 600
+                          }}
+                          onClick={async () => {
+                            if (log.score === null) return toast.error('Please grade the daily log first before releasing the score')
+                            try {
+                              await releaseDailyLogScore({ teamId: team._id, date: log.date, isScoreReleased: !log.isScoreReleased })
+                              toast.success(log.isScoreReleased ? 'Score hidden from student' : 'Score released to student!')
+                              loadLogs()
+                            } catch (err) {
+                              toast.error('Failed to update score release status')
+                            }
+                          }}
+                        >
+                          {log.isScoreReleased ? 'Hide Score' : 'Release Score'}
+                        </button>
                       </div>
                     </div>
 
@@ -434,6 +542,56 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                   </div>
                 )
               })()}
+            </div>
+        </div>
+      )}
+
+      {activeTab === 'docs' && (
+        <div>
+          <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>Uploaded Documents</h4>
+          {docsLoading ? (
+            <div style={{ padding: '20px 0', textAlign: 'center' }}><LoadingSpinner /></div>
+          ) : docSubmissions.length === 0 ? (
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>No documents submitted by this team yet.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {docSubmissions.map((doc, idx) => (
+                <div key={idx} className="glass" style={{ borderRadius: 12, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>{doc.requestId?.title || 'Document Submission'}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>{doc.fileName} ({doc.fileSize} MB)</div>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 4 }}>Uploaded on {new Date(doc.updatedAt).toLocaleString()}</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <a
+                      href={doc.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-primary"
+                      style={{ padding: '6px 12px', fontSize: 12, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                    >
+                      <Download size={12} /> Download
+                    </a>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: 12 }}
+                      onClick={async () => {
+                        if (!window.confirm(`Reset upload attempt count for "${doc.requestId?.title || 'this document'}"?`)) return
+                        try {
+                          await resetSubmissionLimit({ teamId: team._id, requestId: doc.requestId?._id })
+                          toast.success('Upload limit reset successfully!')
+                          loadDocs()
+                        } catch (err) {
+                          toast.error('Failed to reset upload limit')
+                        }
+                      }}
+                    >
+                      Reset Limit ({doc.changeCount || 0}/3)
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

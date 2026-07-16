@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Lock, User, Sparkles, LogIn } from 'lucide-react'
@@ -74,6 +74,10 @@ export default function LoginPage() {
     }
   }
 
+  const memoizedCloud = useMemo(() => (
+    <IconCloud iconSlugs={slugs} />
+  ), [])
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -117,7 +121,7 @@ export default function LoginPage() {
           }}
         >
           <div style={{ width: '100%', maxWidth: '500px', filter: 'drop-shadow(0 20px 30px rgba(37, 99, 235, 0.05))' }}>
-            <IconCloud iconSlugs={slugs} />
+            {memoizedCloud}
           </div>
         </motion.div>
 

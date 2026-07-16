@@ -300,6 +300,7 @@ export default function DailyLogsPage() {
                   <th className="p-4 w-12"></th>
                   <th className="p-4">Log Date</th>
                   <th className="p-4">Edit Count</th>
+                  <th className="p-4">Daily Score</th>
                   <th className="p-4">Status</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
@@ -326,6 +327,17 @@ export default function DailyLogsPage() {
                             {log.changeCount || 0} / 3 edits
                           </span>
                         </td>
+                        <td className="p-4 text-xs font-bold">
+                          {log.score !== null && log.isScoreReleased ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                              ⭐ {log.score} / 100
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-50 text-slate-400 border border-slate-200 font-medium">
+                              Awaiting Release
+                            </span>
+                          )}
+                        </td>
                         <td className="p-4 text-xs">
                           {logIsLocked ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-rose-50 text-rose-700 border border-rose-200">
@@ -350,7 +362,7 @@ export default function DailyLogsPage() {
                       {/* Expandable Member Details Row */}
                       {isExpanded && (
                         <tr className="bg-slate-50/40">
-                          <td colSpan={5} className="p-6 border-b border-slate-200">
+                          <td colSpan={6} className="p-6 border-b border-slate-200">
                             <div className="space-y-4">
                               <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Candidate Task Breakdown:</h4>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
