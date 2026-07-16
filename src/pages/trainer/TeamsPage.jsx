@@ -447,6 +447,7 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                         >
                           Reset Limit
                         </button>
+                      </div>
                     </div>
 
                     {/* Daily Log Grading Section */}
@@ -543,6 +544,7 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                 )
               })()}
             </div>
+          )}
         </div>
       )}
 
