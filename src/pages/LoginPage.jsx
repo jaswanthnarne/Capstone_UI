@@ -9,19 +9,19 @@ import IconCloud from '../components/ui/interactive-icon-cloud'
 
 const slugs = [
   // Languages & Core Web
-  "typescript", "javascript", "java", "spring", "springboot", "python", "django", "flask",
-  "react", "angular", "vue", "svelte", "nextdotjs", "nuxtdotjs", "html5", "css3", "nodedotjs",
+  "typescript", "javascript", "openjdk", "spring", "springboot", "python", "django", "flask",
+  "react", "angular", "vuedotjs", "svelte", "nextdotjs", "nuxt", "html5", "css3", "nodedotjs",
   "express", "graphql", "bootstrap", "tailwindcss", "redux", "dart", "flutter",
   // Databases
   "mongodb", "postgresql", "mysql", "sqlite", "prisma", "sequelize",
   // Cloud & Media Hosting
-  "amazonaws", "microsoftazure", "googlecloud", "digitalocean", "vercel", "netlify", "heroku", "cloudinary", "firebase",
+  "amazonwebservices", "googlecloud", "digitalocean", "vercel", "netlify", "heroku", "cloudinary", "firebase",
   // Developer Tools & Testing
   "postman", "git", "github", "gitlab", "docker", "kubernetes", "jenkins", "terraform", "ansible",
   // AI / ML / Data Science
   "tensorflow", "pytorch", "scikitlearn", "pandas", "numpy", "jupyter", "keras", "anaconda",
   // Cyber Security & Splunk
-  "splunk", "wireshark", "kali", "owasp", "fortinet", "paloaltonetworks", "metasploit"
+  "splunk", "wireshark", "kalilinux", "owasp", "fortinet", "paloaltonetworks", "metasploit"
 ];
 
 export default function LoginPage() {

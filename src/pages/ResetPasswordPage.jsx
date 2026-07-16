@@ -7,14 +7,20 @@ import { resetPassword } from '../services/api'
 import IconCloud from '../components/ui/interactive-icon-cloud'
 
 const slugs = [
-  "typescript", "javascript", "java", "spring", "springboot", "python", "django", "flask",
-  "react", "angular", "vue", "svelte", "nextdotjs", "nuxtdotjs", "html5", "css3", "nodedotjs",
+  // Languages & Core Web
+  "typescript", "javascript", "openjdk", "spring", "springboot", "python", "django", "flask",
+  "react", "angular", "vuedotjs", "svelte", "nextdotjs", "nuxt", "html5", "css3", "nodedotjs",
   "express", "graphql", "bootstrap", "tailwindcss", "redux", "dart", "flutter",
+  // Databases
   "mongodb", "postgresql", "mysql", "sqlite", "prisma", "sequelize",
-  "amazonaws", "microsoftazure", "googlecloud", "digitalocean", "vercel", "netlify", "heroku", "cloudinary", "firebase",
+  // Cloud & Media Hosting
+  "amazonwebservices", "googlecloud", "digitalocean", "vercel", "netlify", "heroku", "cloudinary", "firebase",
+  // Developer Tools & Testing
   "postman", "git", "github", "gitlab", "docker", "kubernetes", "jenkins", "terraform", "ansible",
+  // AI / ML / Data Science
   "tensorflow", "pytorch", "scikitlearn", "pandas", "numpy", "jupyter", "keras", "anaconda",
-  "splunk", "wireshark", "kali", "owasp", "fortinet", "paloaltonetworks", "metasploit"
+  // Cyber Security & Splunk
+  "splunk", "wireshark", "kalilinux", "owasp", "fortinet", "paloaltonetworks", "metasploit"
 ];
 
 export default function ResetPasswordPage() {
