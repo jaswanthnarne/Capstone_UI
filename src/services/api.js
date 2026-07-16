@@ -31,6 +31,8 @@ export const trainerBootstrap = (data) => api.post('/auth/trainer/bootstrap', da
 export const teamRegister = (data) => api.post('/auth/team/register', data)
 export const teamLogin = (data) => api.post('/auth/team/login', data)
 export const unifiedLogin = (data) => api.post('/auth/login', data)
+export const forgotPassword = (data) => api.post('/auth/forgot-password', data)
+export const resetPassword = (data) => api.post('/auth/reset-password', data)
 
 // ─── Trainer Dashboard ────────────────────────────────────────────────────────
 export const getDashboard = () => api.get('/trainer/dashboard')

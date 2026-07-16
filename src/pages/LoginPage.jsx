@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Lock, User, Sparkles, LogIn } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { unifiedLogin } from '../services/api'
+import { unifiedLogin, forgotPassword } from '../services/api'
 import useAuthStore from '../store/authStore'
 import IconCloud from '../components/ui/interactive-icon-cloud'
 
@@ -28,8 +28,28 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [showPass, setShowPass] = useState(false)
   const [form, setForm] = useState({ usernameOrEmail: '', password: '' })
+  const [showForgotModal, setShowForgotModal] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotLoading, setForgotLoading] = useState(false)
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault()
+    if (!forgotEmail) return toast.error('Please enter your email')
+    
+    setForgotLoading(true)
+    try {
+      const res = await forgotPassword({ email: forgotEmail })
+      toast.success(res.data?.message || 'Password reset link sent to your email!')
+      setShowForgotModal(false)
+      setForgotEmail('')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send password reset link')
+    } finally {
+      setForgotLoading(false)
+    }
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -185,9 +205,18 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label style={{ fontSize: '13px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '8px' }}>
-                Password
-              </label>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+               <label style={{ fontSize: '13px', fontWeight: 600, color: '#475569', margin: 0 }}>
+                 Password
+               </label>
+               <button
+                 type="button"
+                 onClick={() => setShowForgotModal(true)}
+                 style={{ fontSize: '12px', fontWeight: 600, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+               >
+                 Forgot Password?
+               </button>
+             </div>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                 <input
@@ -302,6 +331,110 @@ export default function LoginPage() {
           `}</style>
         </motion.div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 999
+        }}>
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              width: '100%',
+              maxWidth: '400px',
+              padding: '36px',
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+              border: '1px solid #e2e8f0',
+              position: 'relative'
+            }}
+          >
+            <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0' }}>Forgot Password?</h3>
+            <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+              Enter your registered email address and we'll send you a password reset link.
+            </p>
+
+            <form onSubmit={handleForgotSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>Email Address</label>
+                <input
+                  type="email"
+                  placeholder="name@example.com"
+                  value={forgotEmail}
+                  onChange={e => setForgotEmail(e.target.value)}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    fontSize: '14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    outline: 'none',
+                    fontFamily: 'inherit'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#2563eb';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.15)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#cbd5e1';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(false)}
+                  style={{
+                    flex: 1,
+                    background: '#f1f5f9',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#475569',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={forgotLoading}
+                  style={{
+                    flex: 1,
+                    background: '#2563eb',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 10px rgba(37, 99, 235, 0.2)',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  {forgotLoading ? 'Sending...' : 'Send Link'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }

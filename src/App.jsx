@@ -7,6 +7,7 @@ import { PageLoader } from './components/ui'
 // Pages
 import LoginPage from './pages/LoginPage'
 const AcceptInvitationPage = lazy(() => import('./pages/AcceptInvitationPage'))
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 
 // Trainer pages
 const TrainerDashboard = lazy(() => import('./pages/trainer/TrainerDashboard'))
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="/" element={<AuthRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
         {/* Trainer routes */}
         <Route path="/trainer" element={<RequireTrainer><Layout /></RequireTrainer>}>
