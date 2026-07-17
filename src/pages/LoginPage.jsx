@@ -9,17 +9,17 @@ import IconCloud from '../components/ui/interactive-icon-cloud'
 
 const slugs = [
   // Languages & Core Web
-  "typescript", "javascript", "openjdk", "python", "go", "rust", "cplusplus", "csharp",
+  "typescript", "javascript", "openjdk", "python", "go", "rust", "cplusplus",
   "ruby", "php", "swift", "kotlin", "dart", "scala", "r", "perl",
   // Frontend Frameworks
   "react", "angular", "vuedotjs", "svelte", "nextdotjs", "nuxt", "html5", "css3",
   "bootstrap", "tailwindcss", "redux", "flutter", "sass", "webpack",
   // Backend & API
   "nodedotjs", "express", "spring", "springboot", "django", "flask", "fastapi",
-  "graphql", "dotnet", "rails", "laravel", "nestjs",
+  "graphql", "dotnet", "rubyonrails", "laravel", "nestjs",
   // Databases
   "mongodb", "postgresql", "mysql", "sqlite", "redis", "prisma", "sequelize",
-  "neo4j", "cassandra", "elasticsearch",
+  "neo4j", "apachecassandra", "elasticsearch",
   // Cloud & Hosting
   "amazonwebservices", "googlecloud", "digitalocean", "vercel", "netlify",
   "heroku", "cloudinary", "firebase", "render", "railway",
@@ -27,7 +27,7 @@ const slugs = [
   "docker", "kubernetes", "jenkins", "terraform", "ansible", "nginx",
   "githubactions", "gitlab", "circleci", "prometheus", "grafana",
   // Developer Tools
-  "postman", "git", "github", "visualstudiocode", "intellijidea", "figma",
+  "postman", "git", "github", "androidstudio", "intellijidea", "figma",
   "jira", "confluence", "notion", "slack",
   // AI / ML / Data Science
   "tensorflow", "pytorch", "scikitlearn", "pandas", "numpy", "jupyter",
@@ -161,11 +161,11 @@ export default function LoginPage() {
           {/* Brand header */}
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <img 
-              src="https://res.cloudinary.com/ddwxonjbd/image/upload/v1784274129/ethnotech/ethnotech_logo_full.jpg"
+              src="https://res.cloudinary.com/ddwxonjbd/image/upload/w_120,c_scale/v1784274129/ethnotech/ethnotech_logo_full.jpg"
               alt="Ethnotech Academic Solutions"
               style={{
-                width: '72px',
-                height: '72px',
+                width: '64px',
+                height: '64px',
                 borderRadius: '50%',
                 objectFit: 'cover',
                 marginBottom: '16px',
