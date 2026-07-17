@@ -4,7 +4,6 @@ import { Users, Building2, Layers, Award, TrendingUp, AlertCircle, CheckCircle, 
 import toast from 'react-hot-toast'
 import { getDashboard, getTeamMilestones } from '../../services/api'
 import { StatCard, StatusBadge, LoadingSpinner } from '../../components/ui'
-import TeamOverviewGalaxy from '../../components/three/TeamOverviewGalaxy'
 
 function TeamDetailPanel({ team, onClose }) {
   const [milestones, setMilestones] = useState([])
@@ -138,9 +137,6 @@ export default function TrainerDashboard() {
           Cross-college overview — {data.summary.totalColleges} colleges, {data.summary.totalBatches} batches
         </p>
       </div>
-
-      {/* 3D Team Overview Constellation map */}
-      <TeamOverviewGalaxy teams={filteredTeams} onTeamClick={setSelectedTeam} />
 
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 28 }}>

@@ -13,24 +13,28 @@ export const cloudProps = {
       justifyContent: "center",
       alignItems: "center",
       width: "100%",
-      paddingTop: 40,
+      paddingTop: 20,
+      paddingBottom: 20,
     },
   },
   options: {
     reverse: true,
-    depth: 1,
+    depth: 0.95,
     wheelZoom: false,
-    imageScale: 2,
+    imageScale: 1, // Optimized image resolution to prevent rendering lag
     activeCursor: "default",
     tooltip: "native",
-    initial: [0.1, -0.1],
+    initial: [0.03, -0.03],
     clickToFront: 500,
     tooltipDelay: 0,
     outlineColour: "#0000",
-    maxSpeed: 0.04,
-    minSpeed: 0.02,
+    maxSpeed: 0.02, // Smooth, slow speed prevents recalculation bottlenecks
+    minSpeed: 0.005,
     freezeActive: true,
     freezeDecel: true,
+    dragControl: true, // Smooth dragging interaction
+    noSelect: true,
+    lock: null,
   },
 }
 
