@@ -9,19 +9,32 @@ import IconCloud from '../components/ui/interactive-icon-cloud'
 
 const slugs = [
   // Languages & Core Web
-  "typescript", "javascript", "openjdk", "spring", "springboot", "python", "django", "flask",
-  "react", "angular", "vuedotjs", "svelte", "nextdotjs", "nuxt", "html5", "css3", "nodedotjs",
-  "express", "graphql", "bootstrap", "tailwindcss", "redux", "dart", "flutter",
+  "typescript", "javascript", "openjdk", "python", "go", "rust", "cplusplus", "csharp",
+  "ruby", "php", "swift", "kotlin", "dart", "scala", "r", "perl",
+  // Frontend Frameworks
+  "react", "angular", "vuedotjs", "svelte", "nextdotjs", "nuxt", "html5", "css3",
+  "bootstrap", "tailwindcss", "redux", "flutter", "sass", "webpack",
+  // Backend & API
+  "nodedotjs", "express", "spring", "springboot", "django", "flask", "fastapi",
+  "graphql", "dotnet", "rails", "laravel", "nestjs",
   // Databases
-  "mongodb", "postgresql", "mysql", "sqlite", "prisma", "sequelize",
-  // Cloud & Media Hosting
-  "amazonwebservices", "googlecloud", "digitalocean", "vercel", "netlify", "heroku", "cloudinary", "firebase",
-  // Developer Tools & Testing
-  "postman", "git", "github", "gitlab", "docker", "kubernetes", "jenkins", "terraform", "ansible",
+  "mongodb", "postgresql", "mysql", "sqlite", "redis", "prisma", "sequelize",
+  "neo4j", "cassandra", "elasticsearch",
+  // Cloud & Hosting
+  "amazonwebservices", "googlecloud", "digitalocean", "vercel", "netlify",
+  "heroku", "cloudinary", "firebase", "render", "railway",
+  // DevOps & CI/CD
+  "docker", "kubernetes", "jenkins", "terraform", "ansible", "nginx",
+  "githubactions", "gitlab", "circleci", "prometheus", "grafana",
+  // Developer Tools
+  "postman", "git", "github", "visualstudiocode", "intellijidea", "figma",
+  "jira", "confluence", "notion", "slack",
   // AI / ML / Data Science
-  "tensorflow", "pytorch", "scikitlearn", "pandas", "numpy", "jupyter", "keras", "anaconda",
-  // Cyber Security & Splunk
-  "splunk", "wireshark", "kalilinux", "owasp", "fortinet", "paloaltonetworks", "metasploit"
+  "tensorflow", "pytorch", "scikitlearn", "pandas", "numpy", "jupyter",
+  "keras", "anaconda", "opencv", "openai", "huggingface",
+  // Cyber Security
+  "splunk", "wireshark", "kalilinux", "owasp", "fortinet",
+  "paloaltonetworks", "gnubash", "linux", "ubuntu",
 ];
 
 export default function LoginPage() {
@@ -147,19 +160,32 @@ export default function LoginPage() {
         >
           {/* Brand header */}
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <img 
+              src="https://res.cloudinary.com/ddwxonjbd/image/upload/v1784274129/ethnotech/ethnotech_logo_full.jpg"
+              alt="Ethnotech Academic Solutions"
+              style={{
+                width: '72px',
+                height: '72px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                marginBottom: '16px',
+                boxShadow: '0 4px 20px rgba(37, 99, 235, 0.15)',
+                border: '2px solid rgba(37, 99, 235, 0.1)'
+              }}
+            />
             <div style={{ 
               display: 'inline-flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              gap: '8px', 
+              gap: '6px', 
               background: 'rgba(37, 99, 235, 0.08)',
-              padding: '8px 16px',
-              borderRadius: '12px',
+              padding: '6px 14px',
+              borderRadius: '10px',
               border: '1px solid rgba(37, 99, 235, 0.1)',
-              marginBottom: '16px'
+              marginBottom: '14px'
             }}>
-              <Sparkles size={18} style={{ color: '#2563eb' }} />
-              <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#2563eb' }}>
+              <Sparkles size={14} style={{ color: '#2563eb' }} />
+              <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: '#2563eb' }}>
                 Ethnotech ProjectSpace
               </span>
             </div>

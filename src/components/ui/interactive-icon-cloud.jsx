@@ -19,22 +19,24 @@ export const cloudProps = {
   },
   options: {
     reverse: true,
-    depth: 0.95,
+    depth: 1,
     wheelZoom: false,
-    imageScale: 1, // Optimized image resolution to prevent rendering lag
+    imageScale: 2,
     activeCursor: "default",
     tooltip: "native",
-    initial: [0.03, -0.03],
+    initial: [0.04, -0.04],
     clickToFront: 500,
     tooltipDelay: 0,
     outlineColour: "#0000",
-    maxSpeed: 0.02, // Smooth, slow speed prevents recalculation bottlenecks
-    minSpeed: 0.005,
+    maxSpeed: 0.025,
+    minSpeed: 0.008,
     freezeActive: true,
     freezeDecel: true,
-    dragControl: true, // Smooth dragging interaction
+    dragControl: true,
     noSelect: true,
-    lock: null,
+    radiusX: 1.1,
+    radiusY: 1.1,
+    radiusZ: 1.1,
   },
 }
 
@@ -48,7 +50,7 @@ export const renderCustomIcon = (icon, theme) => {
     bgHex,
     fallbackHex,
     minContrastRatio,
-    size: 42,
+    size: 64,
     aProps: {
       href: undefined,
       target: undefined,
