@@ -358,7 +358,7 @@ export default function SelectProblemPage() {
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(370px, 1fr))', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 370px), 1fr))', gap: 20 }}>
             {problems.length === 0 ? (
               <EmptyState icon={AlertCircle} title="No problems available" description="No problem statements have been added for your batch's subject yet." />
             ) : (

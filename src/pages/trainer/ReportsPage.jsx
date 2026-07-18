@@ -83,7 +83,7 @@ export default function ReportsPage() {
       )}
 
       {/* Export actions */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: 16 }}>
 
         {/* Batch Progress Report */}
         <motion.div className="glass" style={{ borderRadius: 16, padding: 22 }} whileHover={{ y: -3 }}>

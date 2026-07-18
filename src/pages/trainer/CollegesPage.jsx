@@ -83,7 +83,7 @@ export default function CollegesPage() {
       {colleges.length === 0 ? (
         <EmptyState icon={Building2} title="No colleges yet" description="Add your first college to get started." action={<button className="btn-primary" onClick={() => setModal({ open: true, mode: 'create', data: null })}><Plus size={14}/> Add College</button>} />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: 16 }}>
           <AnimatePresence>
             {colleges.map(college => (
               <motion.div

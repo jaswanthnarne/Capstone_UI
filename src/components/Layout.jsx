@@ -126,12 +126,19 @@ export default function Layout() {
             }}
           >
             {/* Logo */}
-            <div style={{ marginBottom: 28, padding: '0 4px' }}>
-              <div className="gradient-text" style={{ fontSize: 18, fontWeight: 700, letterSpacing: -0.5 }}>
-                Ethnotech ProjectSpace
-              </div>
-              <div style={{ color: '#475569', fontSize: 11, marginTop: 2 }}>
-                {isTrainer() ? 'Trainer Portal' : 'Team Portal'}
+            <div style={{ marginBottom: 28, padding: '0 4px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <img 
+                src="https://res.cloudinary.com/ddwxonjbd/image/upload/w_120,c_scale/v1784274129/ethnotech/ethnotech_logo_full.jpg" 
+                alt="Ethnotech Logo" 
+                style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }} 
+              />
+              <div>
+                <div className="gradient-text" style={{ fontSize: 16, fontWeight: 800, letterSpacing: -0.5, lineHeight: 1.2 }}>
+                  Ethnotech
+                </div>
+                <div style={{ color: '#475569', fontSize: 11, fontWeight: 600 }}>
+                  {isTrainer() ? 'Trainer Portal' : 'Team Portal'}
+                </div>
               </div>
             </div>
 

@@ -396,7 +396,7 @@ export default function ProjectDetailsPage() {
                 action={<button className="btn-primary" onClick={() => setCreateModal(true)}><Plus size={14} /> Create Team</button>}
               />
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: 16 }}>
                 {teams.map(team => {
                   const sizeInvalid = (team.members?.length || 0) + 1 < (project.minMembers || 2) || (team.members?.length || 0) + 1 > (project.maxMembers || 6)
                   return (
