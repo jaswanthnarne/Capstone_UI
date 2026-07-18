@@ -1,8 +1,16 @@
 import axios from 'axios'
 import useAuthStore from '../store/authStore'
 
+const getBaseURL = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && typeof envUrl === 'string') {
+    return envUrl.trim();
+  }
+  return 'https://backend-jaswanth-s.vercel.app/api';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://backend-jaswanth-s.vercel.app/api',
+  baseURL: getBaseURL(),
   headers: { 'Content-Type': 'application/json' },
 })
 
