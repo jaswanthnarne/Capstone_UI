@@ -246,6 +246,10 @@ export default function ProblemsPage() {
     if (filter.difficulty) params.difficulty = filter.difficulty
     Promise.all([getProblems(params), getSubjects()])
       .then(([p, s]) => { setProblems(p.data.data); setSubjects(s.data.data) })
+      .catch((err) => {
+        console.error(err);
+        toast.error(err.response?.data?.message || 'Failed to load problems or subjects');
+      })
       .finally(() => setLoading(false))
   }
 

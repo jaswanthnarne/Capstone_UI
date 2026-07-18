@@ -214,7 +214,10 @@ export default function SelectProblemPage() {
         setProblems(p.data.data)
         setTeam(t.data.data)
       })
-      .catch(() => toast.error('Failed to load project details'))
+      .catch((err) => {
+        console.error(err);
+        toast.error(err.response?.data?.message || 'Failed to load project details');
+      })
       .finally(() => setLoading(false))
   }
 

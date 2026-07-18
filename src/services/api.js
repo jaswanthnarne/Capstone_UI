@@ -2,9 +2,13 @@ import axios from 'axios'
 import useAuthStore from '../store/authStore'
 
 const getBaseURL = () => {
-  const envUrl = import.meta.env.VITE_API_URL;
+  let envUrl = import.meta.env.VITE_API_URL;
   if (envUrl && typeof envUrl === 'string') {
-    return envUrl.trim();
+    return envUrl
+      .replace(/['"\r\n]/g, '')  // Remove single/double quotes and actual newlines
+      .replace(/\\r/g, '')       // Remove escaped \r
+      .replace(/\\n/g, '')       // Remove escaped \n
+      .trim();
   }
   return 'https://backend-jaswanth-s.vercel.app/api';
 };
