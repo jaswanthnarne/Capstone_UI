@@ -134,6 +134,8 @@ export const getTeamDailyLogs = (teamId) => api.get(`/daily-logs/team/${teamId}`
 export const resetDailyLogLimit = (data) => api.post('/daily-logs/trainer/reset', data)
 export const gradeDailyLog = (data) => api.post('/daily-logs/trainer/grade', data)
 export const releaseDailyLogScore = (data) => api.post('/daily-logs/trainer/release', data)
+export const getAllDailyLogs = () => api.get('/daily-logs/all')
+export const overrideDailyLog = (data) => api.post('/daily-logs/trainer/override', data)
 
 // ─── Document Requests ─────────────────────────────────────────────────────────
 export const createDocRequest = (data) => api.post('/doc-requests/trainer', data)

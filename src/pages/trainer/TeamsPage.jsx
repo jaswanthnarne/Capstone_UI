@@ -5,11 +5,12 @@ import {
   getAllTeams, getColleges, getBatches, getSubjects, createTeam,
   getProblems, getTeamMilestones, getAllSubmissions, getAllEvaluations,
   adminOverrideTeam, deleteTeam, getTeamDailyLogs, resetDailyLogLimit,
-  gradeDailyLog, releaseDailyLogScore, getTeamDocSubmissions, resetSubmissionLimit
+  gradeDailyLog, releaseDailyLogScore, getTeamDocSubmissions, resetSubmissionLimit,
+  getAllDailyLogs, overrideDailyLog
 } from '../../services/api'
 import { EmptyState, SectionHeader, StatusBadge, LoadingSpinner, Modal, FormField } from '../../components/ui'
 import { useNavigate } from 'react-router-dom'
-import { exportTeamExcel } from '../../utils/excelExport'
+import { exportTeamExcel, exportTeamLogsExcel, exportAllLogsExcel } from '../../utils/excelExport'
 
 function CreateTeamForm({ batches, onSubmit, loading, defaultBatchId }) {
   const [form, setForm] = useState({ name: '', leadUsername: '', password: '', email: '', batchId: defaultBatchId || '' })
@@ -67,6 +68,8 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
   const [selectedLogDate, setSelectedLogDate] = useState('')
   const [logsLoading, setLogsLoading] = useState(false)
   const [logGradeInputs, setLogGradeInputs] = useState({})
+  const [editingLogIdx, setEditingLogIdx] = useState(null)
+  const [editingLogText, setEditingLogText] = useState('')
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const addMember = () => setMembers(m => [...m, { name: '', rollNumber: '', email: '' }])
@@ -405,18 +408,28 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
             <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>No daily work logs submitted by this team yet.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>Select Date:</label>
-                <select 
-                  className="input-dark" 
-                  style={{ width: 'auto', padding: '6px 12px' }} 
-                  value={selectedLogDate} 
-                  onChange={e => setSelectedLogDate(e.target.value)}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>Select Date:</label>
+                  <select 
+                    className="input-dark" 
+                    style={{ width: 'auto', padding: '6px 12px' }} 
+                    value={selectedLogDate} 
+                    onChange={e => setSelectedLogDate(e.target.value)}
+                  >
+                    {dailyLogs.map(l => (
+                      <option key={l.date} value={l.date}>{l.date}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ padding: '6px 12px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                  onClick={() => exportTeamLogsExcel(team.name, dailyLogs)}
                 >
-                  {dailyLogs.map(l => (
-                    <option key={l.date} value={l.date}>{l.date}</option>
-                  ))}
-                </select>
+                  <Download size={12} /> Export Team Logs (Excel)
+                </button>
               </div>
 
               {(() => {
@@ -528,17 +541,83 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {log.logs.map((item, keyIdx) => (
-                        <div key={keyIdx} style={{ padding: 10, background: 'rgba(0,0,0,0.01)', border: '1px solid rgba(0,0,0,0.04)', borderRadius: 8 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 4 }}>
-                            <span>{item.name}</span>
-                            <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{item.rollNumber}</span>
+                      {log.logs.map((item, keyIdx) => {
+                        const isEditing = editingLogIdx === keyIdx
+                        return (
+                          <div key={keyIdx} style={{ padding: 10, background: 'rgba(0,0,0,0.01)', border: '1px solid rgba(0,0,0,0.04)', borderRadius: 8 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 6 }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                👤 {item.name} 
+                                <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>({item.rollNumber})</span>
+                              </span>
+                              {!isEditing && (
+                                <button
+                                  type="button"
+                                  className="btn-secondary"
+                                  style={{ padding: '2px 6px', fontSize: 10, display: 'inline-flex', alignItems: 'center', gap: 2 }}
+                                  onClick={() => {
+                                    setEditingLogIdx(keyIdx)
+                                    setEditingLogText(item.taskDone || '')
+                                  }}
+                                >
+                                  <Edit size={10} /> Edit Log
+                                </button>
+                              )}
+                            </div>
+                            
+                            {isEditing ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                                <textarea
+                                  className="input-dark"
+                                  rows={3}
+                                  style={{ width: '100%', fontSize: 12, padding: 8 }}
+                                  value={editingLogText}
+                                  onChange={e => setEditingLogText(e.target.value)}
+                                  placeholder="Type work log override description..."
+                                />
+                                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                  <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    style={{ padding: '4px 10px', fontSize: 11 }}
+                                    onClick={() => setEditingLogIdx(null)}
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-primary"
+                                    style={{ padding: '4px 10px', fontSize: 11 }}
+                                    onClick={async () => {
+                                      try {
+                                        const updatedLogs = log.logs.map((item2, idx2) => 
+                                          idx2 === keyIdx ? { ...item2, taskDone: editingLogText } : item2
+                                        )
+                                        await overrideDailyLog({
+                                          teamId: team._id,
+                                          date: log.date,
+                                          logs: updatedLogs
+                                        })
+                                        toast.success('Daily log description updated!')
+                                        setEditingLogIdx(null)
+                                        loadLogs()
+                                      } catch (err) {
+                                        toast.error('Failed to override daily log')
+                                      }
+                                    }}
+                                  >
+                                    Save Override
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'pre-wrap' }}>
+                                {item.taskDone || '(No work logged)'}
+                              </p>
+                            )}
                           </div>
-                          <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'pre-wrap' }}>
-                            {item.taskDone || '(No work logged)'}
-                          </p>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 )
@@ -653,6 +732,23 @@ export default function TeamsPage() {
 
   useEffect(() => { loadTeams() }, [selectedBatchId])
 
+  const handleExportAllLogs = async () => {
+    try {
+      const loader = toast.loading('Fetching all daily logs...')
+      const res = await getAllDailyLogs()
+      toast.dismiss(loader)
+      if (res.data?.success) {
+        await exportAllLogsExcel(res.data.data)
+        toast.success('All daily logs exported successfully!')
+      } else {
+        throw new Error('Export failed')
+      }
+    } catch (err) {
+      toast.dismiss()
+      toast.error('Failed to export daily logs')
+    }
+  }
+
   const handleCreateTeam = async (form) => {
     setSaving(true)
     try {
@@ -738,7 +834,7 @@ export default function TeamsPage() {
 
       {/* Search and status controls */}
       {selectedBatchId && (
-        <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: '1 1 200px' }}>
             <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
             <input className="input-dark" style={{ paddingLeft: 34 }} placeholder="Search teams in batch..." value={filter.q} onChange={e => setFilter(f => ({ ...f, q: e.target.value }))} />
@@ -750,6 +846,14 @@ export default function TeamsPage() {
             <option value="problem_pending">Pending</option>
             <option value="overdue">Overdue</option>
           </select>
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}
+            onClick={handleExportAllLogs}
+          >
+            <Download size={14} /> Export All Daily Logs (Excel)
+          </button>
         </div>
       )}
 

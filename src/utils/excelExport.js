@@ -555,3 +555,139 @@ export const exportAllProblemsExcel = async (problems) => {
   autoWidthColumns(sheet);
   await saveWorkbook(workbook, `all_capstone_problems_pool.xlsx`);
 };
+
+/**
+ * 6. Export One Team's Daily Work Logs
+ */
+export const exportTeamLogsExcel = async (teamName, logs) => {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Daily Logs');
+
+  // Title Block
+  sheet.mergeCells('A1:F1');
+  const titleCell = sheet.getCell('A1');
+  titleCell.value = `DAILY WORK LOGS: ${teamName.toUpperCase()}`;
+  titleCell.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FFFFFF' } };
+  titleCell.fill = STYLES.headerFill;
+  titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+  sheet.getRow(1).height = 36;
+
+  sheet.addRow([]);
+
+  // Headers
+  const headers = ['Log Date', 'Student Name', 'USN/Reg Number', 'Work Completed Task Description', 'Day Score (0-100)', 'Score Release Status'];
+  const headerRow = sheet.addRow(headers);
+  headerRow.height = 25;
+  headerRow.font = { bold: true, color: { argb: 'FFFFFF' } };
+  headerRow.eachCell(c => {
+    c.fill = STYLES.accentFill;
+    c.border = STYLES.thinBorder;
+  });
+
+  let rowCounter = 0;
+  logs.forEach(logDay => {
+    const logDate = logDay.date;
+    const scoreVal = logDay.score !== null ? `${logDay.score}/100` : 'Not Graded';
+    const releaseStatus = logDay.isScoreReleased ? 'RELEASED' : 'AWAITING RELEASE';
+
+    logDay.logs.forEach(mLog => {
+      const row = sheet.addRow([
+        logDate,
+        mLog.name,
+        mLog.rollNumber,
+        mLog.taskDone || '(No work logged)',
+        scoreVal,
+        releaseStatus
+      ]);
+      row.height = 20;
+      row.eachCell((cell, colIdx) => {
+        cell.border = STYLES.thinBorder;
+        cell.fill = rowCounter % 2 === 0 ? STYLES.zebraFill : STYLES.whiteFill;
+
+        if (colIdx === 6) {
+          if (logDay.isScoreReleased) {
+            cell.fill = STYLES.statusFills.submitted;
+            cell.font = STYLES.statusTexts.submitted;
+          } else {
+            cell.fill = STYLES.statusFills.problem_pending;
+            cell.font = STYLES.statusTexts.problem_pending;
+          }
+        }
+      });
+      rowCounter++;
+    });
+  });
+
+  autoWidthColumns(sheet);
+  sheet.getColumn(4).width = 40;
+  await saveWorkbook(workbook, `daily_logs_${teamName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_report.xlsx`);
+};
+
+/**
+ * 7. Export All Daily Work Logs (All Teams)
+ */
+export const exportAllLogsExcel = async (allLogs) => {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('All Work Logs');
+
+  // Title Block
+  sheet.mergeCells('A1:G1');
+  const titleCell = sheet.getCell('A1');
+  titleCell.value = `MASTER REGISTER: ALL TEAM DAILY WORK LOGS`;
+  titleCell.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FFFFFF' } };
+  titleCell.fill = STYLES.headerFill;
+  titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+  sheet.getRow(1).height = 36;
+
+  sheet.addRow([]);
+
+  // Headers
+  const headers = ['Team Name', 'Log Date', 'Student Name', 'USN/Reg Number', 'Work Completed Task Description', 'Day Score (0-100)', 'Release Status'];
+  const headerRow = sheet.addRow(headers);
+  headerRow.height = 25;
+  headerRow.font = { bold: true, color: { argb: 'FFFFFF' } };
+  headerRow.eachCell(c => {
+    c.fill = STYLES.accentFill;
+    c.border = STYLES.thinBorder;
+  });
+
+  let rowCounter = 0;
+  allLogs.forEach(logDay => {
+    const teamName = logDay.teamId?.name || 'Deleted Team';
+    const logDate = logDay.date;
+    const scoreVal = logDay.score !== null ? `${logDay.score}/100` : 'Not Graded';
+    const releaseStatus = logDay.isScoreReleased ? 'RELEASED' : 'AWAITING RELEASE';
+
+    logDay.logs.forEach(mLog => {
+      const row = sheet.addRow([
+        teamName,
+        logDate,
+        mLog.name,
+        mLog.rollNumber,
+        mLog.taskDone || '(No work logged)',
+        scoreVal,
+        releaseStatus
+      ]);
+      row.height = 20;
+      row.eachCell((cell, colIdx) => {
+        cell.border = STYLES.thinBorder;
+        cell.fill = rowCounter % 2 === 0 ? STYLES.zebraFill : STYLES.whiteFill;
+
+        if (colIdx === 7) {
+          if (logDay.isScoreReleased) {
+            cell.fill = STYLES.statusFills.submitted;
+            cell.font = STYLES.statusTexts.submitted;
+          } else {
+            cell.fill = STYLES.statusFills.problem_pending;
+            cell.font = STYLES.statusTexts.problem_pending;
+          }
+        }
+      });
+      rowCounter++;
+    });
+  });
+
+  autoWidthColumns(sheet);
+  sheet.getColumn(5).width = 45;
+  await saveWorkbook(workbook, `all_teams_master_daily_logs_report.xlsx`);
+};
