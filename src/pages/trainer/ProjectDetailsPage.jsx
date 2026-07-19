@@ -50,23 +50,16 @@ function CreateTeamForm({ onSubmit, loading }) {
           </button>
         </div>
         {members.map((m, i) => (
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr auto', gap: 6, marginBottom: 8 }}>
+            <input className="input-dark" style={{ fontSize: 12 }} placeholder="Name" value={m.name} onChange={e => updateMember(i, 'name', e.target.value)} required />
+            <input className="input-dark" style={{ fontSize: 12 }} placeholder="Roll No" value={m.rollNumber} onChange={e => updateMember(i, 'rollNumber', e.target.value)} required />
+            <input className="input-dark" style={{ fontSize: 12 }} placeholder="Email" type="email" value={m.email} onChange={e => updateMember(i, 'email', e.target.value)} required />
+            <button type="button" onClick={() => removeMember(i)} className="btn-danger" style={{ padding: '4px 8px' }}>✕</button>
+          </div>
+        ))}
+      </div>
 
-  return (
-    <form onSubmit={e => { e.preventDefault(); onSubmit(form) }}>
-      <FormField label="Team Name" id="team-name">
-        <input id="team-name" className="input-dark" placeholder="e.g. Team Alpha" value={form.name} onChange={e => set('name', e.target.value)} required />
-      </FormField>
-      <FormField label="Lead Username" id="team-username">
-        <input id="team-username" className="input-dark" placeholder="e.g. leadalpha" value={form.leadUsername} onChange={e => set('leadUsername', e.target.value)} required />
-      </FormField>
-      <FormField label="Lead Email" id="team-email">
-        <input id="team-email" className="input-dark" type="email" placeholder="lead@college.edu" value={form.email} onChange={e => set('email', e.target.value)} required />
-      </FormField>
-      <FormField label="Password" id="team-password">
-        <input id="team-password" className="input-dark" type="password" placeholder="••••••••" value={form.password} onChange={e => set('password', e.target.value)} required />
-      </FormField>
-      <button type="submit" id="save-team-btn" className="btn-primary w-full" style={{ width: '100%', justifyContent: 'center', padding: 12, marginTop: 8 }} disabled={loading}>
+      <button type="submit" id="save-team-btn" className="btn-primary w-full" style={{ width: '100%', justifyContent: 'center', padding: 12, marginTop: 14 }} disabled={loading}>
         {loading ? <span className="spinner" style={{ width: 18, height: 18 }} /> : 'Create Team & Lead'}
       </button>
     </form>
@@ -169,6 +162,47 @@ function EditTeamModal({ team, problems, onSubmit, loading }) {
   )
 }
 
+function EditProjectModal({ project, onSubmit, loading }) {
+  const [form, setForm] = useState({
+    name: project.name || '',
+    startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '2026-07-13',
+    endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '2026-07-19',
+    minMembers: project.minMembers || 2,
+    maxMembers: project.maxMembers || 6,
+  })
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  return (
+    <form onSubmit={e => { e.preventDefault(); onSubmit(form) }}>
+      <FormField label="Capstone Project Name">
+        <input className="input-dark" value={form.name} onChange={e => set('name', e.target.value)} required />
+      </FormField>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <FormField label="Start Date">
+          <input className="input-dark" type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} required />
+        </FormField>
+        <FormField label="End Date">
+          <input className="input-dark" type="date" value={form.endDate} onChange={e => set('endDate', e.target.value)} required />
+        </FormField>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <FormField label="Min Team Members">
+          <input className="input-dark" type="number" min="1" max="10" value={form.minMembers} onChange={e => set('minMembers', parseInt(e.target.value))} required />
+        </FormField>
+        <FormField label="Max Team Members">
+          <input className="input-dark" type="number" min="1" max="20" value={form.maxMembers} onChange={e => set('maxMembers', parseInt(e.target.value))} required />
+        </FormField>
+      </div>
+
+      <button type="submit" className="btn-primary w-full" style={{ width: '100%', justifyContent: 'center', padding: 12, marginTop: 14 }} disabled={loading}>
+        {loading ? <span className="spinner" style={{ width: 18, height: 18 }} /> : <><Save size={14} /> Save Dates & Settings</>}
+      </button>
+    </form>
+  )
+}
+
 export default function ProjectDetailsPage() {
   const { id: projectId } = useParams()
   const navigate = useNavigate()
@@ -187,9 +221,26 @@ export default function ProjectDetailsPage() {
   const [selectedTeam, setSelectedTeam] = useState(null)
   const [overriding, setOverriding] = useState(false)
 
+  const [editProjectModal, setEditProjectModal] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+
   const [templateName, setTemplateName] = useState('')
   const [templateFile, setTemplateFile] = useState(null)
   const [uploading, setUploading] = useState(false)
+
+  const handleUpdateProjectSettings = async (form) => {
+    setSubmitting(true)
+    try {
+      const res = await updateBatch(projectId, form)
+      setProject(res.data.data)
+      toast.success('Project dates and settings updated successfully!')
+      setEditProjectModal(false)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update project settings')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const handleUploadTemplate = async (e) => {
     e.preventDefault()
@@ -369,7 +420,12 @@ export default function ProjectDetailsPage() {
             exit={{ opacity: 0, y: -10 }}
           >
             <div className="glass" style={{ borderRadius: 16, padding: 24 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 16 }}>Capstone Details</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text-primary)', margin: 0 }}>Capstone Details</h3>
+                <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => setEditProjectModal(true)}>
+                  <Edit size={14} /> Edit Dates & Settings
+                </button>
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
                 <div>
                   <div style={{ fontSize: 12, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 5 }}><Building2 size={13} /> College</div>
@@ -630,6 +686,11 @@ export default function ProjectDetailsPage() {
             loading={overriding}
           />
         )}
+      </Modal>
+
+      {/* Edit Project Dates & Settings Modal */}
+      <Modal isOpen={editProjectModal} onClose={() => setEditProjectModal(false)} title="Edit Project Dates & Settings">
+        <EditProjectModal project={project} onSubmit={handleUpdateProjectSettings} loading={submitting} />
       </Modal>
     </div>
   )
