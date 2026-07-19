@@ -163,6 +163,8 @@ export default function LoginPage() {
             <img 
               src="https://res.cloudinary.com/ddwxonjbd/image/upload/w_120,c_scale/v1784274129/ethnotech/ethnotech_logo_full.jpg"
               alt="Ethnotech Academic Solutions"
+              crossOrigin="anonymous"
+              referrerPolicy="no-referrer"
               style={{
                 width: '64px',
                 height: '64px',

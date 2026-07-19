@@ -209,6 +209,8 @@ export default function Layout() {
               <img 
                 src="https://res.cloudinary.com/ddwxonjbd/image/upload/w_120,c_scale/v1784274129/ethnotech/ethnotech_logo_full.jpg" 
                 alt="Ethnotech Logo" 
+                crossOrigin="anonymous"
+                referrerPolicy="no-referrer"
                 style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover' }} 
               />
               <div>

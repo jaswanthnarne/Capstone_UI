@@ -4,34 +4,44 @@ import useAuthStore from './store/authStore'
 import Layout from './components/Layout'
 import { PageLoader } from './components/ui'
 
+// Safe lazy loader that automatically reloads the page if chunk hash changed after deployment
+const safeLazy = (importFn) =>
+  lazy(() =>
+    importFn().catch((err) => {
+      console.warn('Chunk load error (new deployment detected), reloading page...', err)
+      window.location.reload()
+      return new Promise(() => {})
+    })
+  )
+
 // Pages
 import LoginPage from './pages/LoginPage'
-const AcceptInvitationPage = lazy(() => import('./pages/AcceptInvitationPage'))
-const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
+const AcceptInvitationPage = safeLazy(() => import('./pages/AcceptInvitationPage'))
+const ResetPasswordPage = safeLazy(() => import('./pages/ResetPasswordPage'))
 
 // Trainer pages
-const TrainerDashboard = lazy(() => import('./pages/trainer/TrainerDashboard'))
-const CollegesPage = lazy(() => import('./pages/trainer/CollegesPage'))
-const SubjectsPage = lazy(() => import('./pages/trainer/SubjectsPage'))
-const BatchesPage = lazy(() => import('./pages/trainer/BatchesPage'))
-const ProjectDetailsPage = lazy(() => import('./pages/trainer/ProjectDetailsPage'))
-const ProblemsPage = lazy(() => import('./pages/trainer/ProblemsPage'))
-const TeamsPage = lazy(() => import('./pages/trainer/TeamsPage'))
-const EvaluationsPage = lazy(() => import('./pages/trainer/EvaluationsPage'))
-const ReportsPage = lazy(() => import('./pages/trainer/ReportsPage'))
-const DocRequestsPage = lazy(() => import('./pages/trainer/DocRequestsPage'))
+const TrainerDashboard = safeLazy(() => import('./pages/trainer/TrainerDashboard'))
+const CollegesPage = safeLazy(() => import('./pages/trainer/CollegesPage'))
+const SubjectsPage = safeLazy(() => import('./pages/trainer/SubjectsPage'))
+const BatchesPage = safeLazy(() => import('./pages/trainer/BatchesPage'))
+const ProjectDetailsPage = safeLazy(() => import('./pages/trainer/ProjectDetailsPage'))
+const ProblemsPage = safeLazy(() => import('./pages/trainer/ProblemsPage'))
+const TeamsPage = safeLazy(() => import('./pages/trainer/TeamsPage'))
+const EvaluationsPage = safeLazy(() => import('./pages/trainer/EvaluationsPage'))
+const ReportsPage = safeLazy(() => import('./pages/trainer/ReportsPage'))
+const DocRequestsPage = safeLazy(() => import('./pages/trainer/DocRequestsPage'))
 
 // Team pages
-const TeamHomePage = lazy(() => import('./pages/team/TeamHomePage'))
-const InvitationsPage = lazy(() => import('./pages/team/InvitationsPage'))
-const SelectProblemPage = lazy(() => import('./pages/team/SelectProblemPage'))
-const MilestonesPage = lazy(() => import('./pages/team/MilestonesPage'))
-const SubmitPage = lazy(() => import('./pages/team/SubmitPage'))
-const EvaluationPage = lazy(() => import('./pages/team/EvaluationPage'))
-const ProfilePage = lazy(() => import('./pages/team/ProfilePage'))
-const CalendarPage = lazy(() => import('./pages/team/CalendarPage'))
-const DailyLogsPage = lazy(() => import('./pages/team/DailyLogsPage'))
-const DocSubmissionsPage = lazy(() => import('./pages/team/DocSubmissionsPage'))
+const TeamHomePage = safeLazy(() => import('./pages/team/TeamHomePage'))
+const InvitationsPage = safeLazy(() => import('./pages/team/InvitationsPage'))
+const SelectProblemPage = safeLazy(() => import('./pages/team/SelectProblemPage'))
+const MilestonesPage = safeLazy(() => import('./pages/team/MilestonesPage'))
+const SubmitPage = safeLazy(() => import('./pages/team/SubmitPage'))
+const EvaluationPage = safeLazy(() => import('./pages/team/EvaluationPage'))
+const ProfilePage = safeLazy(() => import('./pages/team/ProfilePage'))
+const CalendarPage = safeLazy(() => import('./pages/team/CalendarPage'))
+const DailyLogsPage = safeLazy(() => import('./pages/team/DailyLogsPage'))
+const DocSubmissionsPage = safeLazy(() => import('./pages/team/DocSubmissionsPage'))
 
 // Route guards
 function RequireAuth({ children }) {

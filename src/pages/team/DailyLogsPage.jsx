@@ -26,18 +26,21 @@ export default function DailyLogsPage() {
       setTeam(teamData)
       setSavedLogs(logsRes.data.data)
 
-      // Generate list of dates from startDate to endDate
-      const start = teamData.batchId?.startDate ? new Date(teamData.batchId.startDate) : new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
-      const end = teamData.batchId?.endDate ? new Date(teamData.batchId.endDate) : new Date()
+      // Generate list of dates from startDate to endDate (e.g. 2026-07-13 to 2026-07-19)
+      const rawStart = teamData.batchId?.startDate ? teamData.batchId.startDate.split('T')[0] : '2026-07-13'
+      const rawEnd = teamData.batchId?.endDate ? teamData.batchId.endDate.split('T')[0] : '2026-07-19'
+      
+      const start = new Date(rawStart + 'T00:00:00')
+      const end = new Date(rawEnd + 'T00:00:00')
       
       const dates = []
       let current = new Date(start)
-      const today = new Date()
-      
-      const actualEnd = end > today ? today : end
 
-      while (current <= actualEnd) {
-        dates.push(current.toISOString().split('T')[0])
+      while (current <= end) {
+        const yyyy = current.getFullYear()
+        const mm = String(current.getMonth() + 1).padStart(2, '0')
+        const dd = String(current.getDate()).padStart(2, '0')
+        dates.push(`${yyyy}-${mm}-${dd}`)
         current.setDate(current.getDate() + 1)
       }
       
