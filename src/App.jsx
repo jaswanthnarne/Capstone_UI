@@ -30,6 +30,7 @@ const TeamsPage = safeLazy(() => import('./pages/trainer/TeamsPage'))
 const EvaluationsPage = safeLazy(() => import('./pages/trainer/EvaluationsPage'))
 const ReportsPage = safeLazy(() => import('./pages/trainer/ReportsPage'))
 const DocRequestsPage = safeLazy(() => import('./pages/trainer/DocRequestsPage'))
+const MailLogsPage = safeLazy(() => import('./pages/trainer/MailLogsPage'))
 
 // Team pages
 const TeamHomePage = safeLazy(() => import('./pages/team/TeamHomePage'))
@@ -93,6 +94,7 @@ export default function App() {
           <Route path="evaluations" element={<EvaluationsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="doc-requests" element={<DocRequestsPage />} />
+          <Route path="mail-logs" element={<MailLogsPage />} />
         </Route>
 
         {/* Team Lead routes */}

@@ -148,4 +148,7 @@ export const getTeamDocSubmissions = (teamId) => api.get(`/doc-requests/trainer/
 export const submitDocRequest = (formData) =>
   api.post('/doc-requests/team/submit', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
 
+// ─── Email Logs ───────────────────────────────────────────────────────────────
+export const getMailLogs = (params) => api.get('/mail-logs', { params })
+
 export default api

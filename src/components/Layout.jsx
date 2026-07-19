@@ -97,6 +97,7 @@ const trainerNav = [
   { label: 'Evaluations', icon: Award, to: '/trainer/evaluations' },
   { label: 'Reports', icon: BarChart3, to: '/trainer/reports' },
   { label: 'Doc Requests', icon: Upload, to: '/trainer/doc-requests' },
+  { label: 'Mail Logs', icon: Mail, to: '/trainer/mail-logs' },
 ]
 
 const teamNav = [
