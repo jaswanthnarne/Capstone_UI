@@ -4,9 +4,88 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Building2, BookOpen, Users, Layers, FileText,
   Award, BarChart3, LogOut, ChevronRight, Menu, X, GraduationCap,
-  GitBranch, Send, Star, Mail, User, Calendar, Upload, ClipboardList, UploadCloud
+  GitBranch, Send, Star, Mail, User, Calendar, Upload, ClipboardList, UploadCloud, KeyRound
 } from 'lucide-react'
 import useAuthStore from '../store/authStore'
+import api from '../services/api'
+import toast from 'react-hot-toast'
+
+function FirstLoginPasswordChangeModal() {
+  const { user, login, token } = useAuthStore()
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  if (!user || user.role !== 'teamlead' || !user.mustChangePassword) return null
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (newPassword.length < 6) return toast.error('Password must be at least 6 characters')
+    if (newPassword !== confirmPassword) return toast.error('Passwords do not match')
+    if (newPassword === 'Mits@3!') return toast.error('Please choose a password different from the default one')
+
+    setLoading(true)
+    try {
+      await api.post('/auth/change-password', { newPassword })
+      toast.success('Password updated successfully!')
+      login(token, { ...user, mustChangePassword: false })
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update password')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div className="glass" style={{ background: '#ffffff', borderRadius: 20, width: '100%', maxWidth: 440, padding: 28, boxShadow: '0 20px 40px rgba(0,0,0,0.3)', border: '1px solid #e2e8f0' }}>
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(37,99,235,0.1)', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+            <KeyRound size={24} />
+          </div>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0 }}>Update Default Password</h3>
+          <p style={{ fontSize: 13, color: '#64748b', marginTop: 6 }}>
+            Welcome! Because this is your first time logging in with your default password (<code>Mits@3!</code>), please set a new personal password to secure your team account.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 6 }}>New Password</label>
+            <input
+              className="input-dark"
+              type="password"
+              placeholder="At least 6 characters..."
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#475569', display: 'block', marginBottom: 6 }}>Confirm New Password</label>
+            <input
+              className="input-dark"
+              type="password"
+              placeholder="Re-enter new password..."
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn-primary"
+            style={{ padding: 12, justifyContent: 'center', fontSize: 14, fontWeight: 600, marginTop: 8 }}
+            disabled={loading}
+          >
+            {loading ? <span className="spinner" style={{ width: 18, height: 18 }} /> : 'Update & Continue to Dashboard'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
 
 const trainerNav = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/trainer/dashboard' },
@@ -217,6 +296,7 @@ export default function Layout() {
           </motion.div>
         </main>
       </div>
+      <FirstLoginPasswordChangeModal />
     </div>
   )
 }
