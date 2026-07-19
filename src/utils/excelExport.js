@@ -75,48 +75,49 @@ const autoWidthColumns = (worksheet) => {
 };
 
 /**
- * 1. Export One Team
+ * 1. Export One Team (2 Sheets: Metadata & Roster + Daily Work Logs)
  */
-export const exportTeamExcel = async (team) => {
+export const exportTeamExcel = async (team, logs = []) => {
   const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet('Team Details');
+  
+  // SHEET 1: METADATA & ROSTER
+  const sheet1 = workbook.addWorksheet('Metadata & Roster');
 
   // Title Block
-  sheet.mergeCells('A1:I1');
-  const titleCell = sheet.getCell('A1');
+  sheet1.mergeCells('A1:I1');
+  const titleCell = sheet1.getCell('A1');
   titleCell.value = `TEAM REPORT: ${team.name.toUpperCase()}`;
   titleCell.font = { name: 'Segoe UI', size: 16, bold: true, color: { argb: 'FFFFFF' } };
   titleCell.fill = STYLES.headerFill;
   titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-  sheet.getRow(1).height = 40;
+  sheet1.getRow(1).height = 40;
 
   // Metadata block
-  sheet.addRow([]);
-  sheet.addRow(['Batch Name:', team.batchId?.name || 'N/A', '', 'Status:', team.status || 'N/A']);
-  sheet.addRow(['College:', team.collegeId?.name || 'N/A', '', 'Project Allocated:', team.problemStatementId?.title || 'None Selected']);
-  sheet.addRow(['Email Account:', team.email, '', 'Change Count:', `${team.problemChangeCount || 0}/3 attempts`]);
+  sheet1.addRow([]);
+  sheet1.addRow(['Batch Name:', team.batchId?.name || 'N/A', '', 'Status:', (team.status || 'N/A').toUpperCase()]);
+  sheet1.addRow(['College:', team.collegeId?.name || 'N/A', '', 'Project Allocated:', team.problemStatementId?.title || 'None Selected']);
+  sheet1.addRow(['Email Account:', team.email, '', 'Change Count:', `${team.problemChangeCount || 0}/3 attempts`]);
   
-  // Format metadata
   [3, 4, 5].forEach(rowIdx => {
-    sheet.getRow(rowIdx).font = { name: 'Segoe UI', size: 10 };
-    sheet.getCell(`A${rowIdx}`).font = { bold: true, color: { argb: '475569' } };
-    sheet.getCell(`D${rowIdx}`).font = { bold: true, color: { argb: '475569' } };
+    sheet1.getRow(rowIdx).font = { name: 'Segoe UI', size: 10 };
+    sheet1.getCell(`A${rowIdx}`).font = { bold: true, color: { argb: '475569' } };
+    sheet1.getCell(`D${rowIdx}`).font = { bold: true, color: { argb: '475569' } };
   });
 
-  sheet.addRow([]);
+  sheet1.addRow([]);
 
   // Table Headers
   const tableHeaders = ['Role', 'Student Name', 'USN / Reg Number', 'Email Address', 'Mobile Number', 'Department', 'Division', 'Room Number', 'Course Name'];
-  const headerRow = sheet.addRow(tableHeaders);
+  const headerRow = sheet1.addRow(tableHeaders);
   headerRow.height = 25;
   headerRow.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-  headerRow.eachCell((cell, i) => {
+  headerRow.eachCell((cell) => {
     cell.fill = STYLES.accentFill;
     cell.alignment = { vertical: 'middle', horizontal: 'left' };
   });
 
   // Team Lead Data Row
-  const leadRow = sheet.addRow([
+  const leadRow = sheet1.addRow([
     'Team Lead',
     team.leadName || team.leadUsername,
     team.usnRollNumber || '—',
@@ -136,7 +137,7 @@ export const exportTeamExcel = async (team) => {
 
   // Members Data Rows
   (team.members || []).forEach((m, idx) => {
-    const row = sheet.addRow([
+    const row = sheet1.addRow([
       'Member',
       m.name,
       m.rollNumber,
@@ -154,8 +155,79 @@ export const exportTeamExcel = async (team) => {
     });
   });
 
-  autoWidthColumns(sheet);
-  await saveWorkbook(workbook, `${team.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_report.xlsx`);
+  autoWidthColumns(sheet1);
+
+
+  // SHEET 2: DAILY WORK LOGS
+  const sheet2 = workbook.addWorksheet('Daily Work Logs');
+
+  sheet2.mergeCells('A1:F1');
+  const titleCell2 = sheet2.getCell('A1');
+  titleCell2.value = `DAILY WORK LOGS: ${team.name.toUpperCase()}`;
+  titleCell2.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FFFFFF' } };
+  titleCell2.fill = STYLES.headerFill;
+  titleCell2.alignment = { vertical: 'middle', horizontal: 'center' };
+  sheet2.getRow(1).height = 36;
+
+  sheet2.addRow([]);
+
+  const logHeaders = ['Log Date', 'Student Name', 'USN/Reg Number', 'Work Completed Task Description', 'Day Score (0-100)', 'Score Release Status'];
+  const logHeaderRow = sheet2.addRow(logHeaders);
+  logHeaderRow.height = 25;
+  logHeaderRow.font = { bold: true, color: { argb: 'FFFFFF' } };
+  logHeaderRow.eachCell(c => {
+    c.fill = STYLES.accentFill;
+    c.border = STYLES.thinBorder;
+  });
+
+  if (!logs || logs.length === 0) {
+    const emptyRow = sheet2.addRow(['—', '—', '—', '(No daily work logs submitted by this team yet)', '—', '—']);
+    emptyRow.height = 24;
+    emptyRow.eachCell(c => {
+      c.border = STYLES.thinBorder;
+      c.font = { italic: true, color: { argb: '94A3B8' } };
+      c.alignment = { horizontal: 'center' };
+    });
+  } else {
+    let rowCounter = 0;
+    logs.forEach(logDay => {
+      const logDate = logDay.date;
+      const scoreVal = logDay.score !== null ? `${logDay.score}/100` : 'Not Graded';
+      const releaseStatus = logDay.isScoreReleased ? 'RELEASED' : 'AWAITING RELEASE';
+
+      (logDay.logs || []).forEach(mLog => {
+        const row = sheet2.addRow([
+          logDate,
+          mLog.name,
+          mLog.rollNumber,
+          mLog.taskDone || '(No work logged)',
+          scoreVal,
+          releaseStatus
+        ]);
+        row.height = 20;
+        row.eachCell((cell, colIdx) => {
+          cell.border = STYLES.thinBorder;
+          cell.fill = rowCounter % 2 === 0 ? STYLES.zebraFill : STYLES.whiteFill;
+
+          if (colIdx === 6) {
+            if (logDay.isScoreReleased) {
+              cell.fill = STYLES.statusFills.submitted;
+              cell.font = STYLES.statusTexts.submitted;
+            } else {
+              cell.fill = STYLES.statusFills.problem_pending;
+              cell.font = STYLES.statusTexts.problem_pending;
+            }
+          }
+        });
+        rowCounter++;
+      });
+    });
+  }
+
+  autoWidthColumns(sheet2);
+  sheet2.getColumn(4).width = 45;
+
+  await saveWorkbook(workbook, `team_${team.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_report.xlsx`);
 };
 
 /**
@@ -240,160 +312,232 @@ export const exportAllTeamsExcel = async (teams, batchName = 'All Batches') => {
 };
 
 /**
- * 3. Export One Project (Full Batch details with Multi-Sheets)
+ * 3. Export One Project (Master Workbook: Summary Sheet + Individual Sheet per Team)
  */
-export const exportProjectExcel = async (project, teams) => {
+export const exportProjectExcel = async (project, teams, submissionsMap = {}, evaluationsMap = {}, logsByTeamMap = {}) => {
   const workbook = new ExcelJS.Workbook();
 
-  // SHEET 1: OVERVIEW & STATS
-  const overviewSheet = workbook.addWorksheet('Project Overview');
-  
-  overviewSheet.mergeCells('A1:D1');
-  const titleCell = overviewSheet.getCell('A1');
-  titleCell.value = `PROJECT DASHBOARD: ${project.name.toUpperCase()}`;
+  // SHEET 1: BATCH DIRECTORY & DELIVERABLES SUMMARY
+  const masterSheet = workbook.addWorksheet('Summary & Deliverables');
+
+  masterSheet.mergeCells('A1:M1');
+  const titleCell = masterSheet.getCell('A1');
+  titleCell.value = `PROJECT MASTER REGISTER & DELIVERABLES: ${project.name.toUpperCase()}`;
   titleCell.font = { name: 'Segoe UI', size: 15, bold: true, color: { argb: 'FFFFFF' } };
   titleCell.fill = STYLES.headerFill;
   titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-  overviewSheet.getRow(1).height = 36;
+  masterSheet.getRow(1).height = 40;
 
-  overviewSheet.addRow([]);
-  overviewSheet.addRow(['Capstone Project Name:', project.name]);
-  overviewSheet.addRow(['Subject Area:', project.subjectId?.name || 'Global Pool']);
-  overviewSheet.addRow(['Selection Limit Rule:', '3 selection changes allowed per team']);
-  overviewSheet.addRow(['Lock Selection Status:', project.isProblemSelectionLocked ? 'LOCKED BY ADMIN' : 'UNLOCKED (Open to students)']);
-  
-  // Format summary labels
-  [3, 4, 5, 6].forEach(rIdx => {
-    overviewSheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: '1E3A8A' } };
-  });
+  masterSheet.addRow([]);
 
-  // Calculate Metrics
-  const totalTeams = teams.length;
-  const submittedTeams = teams.filter(t => t.status === 'submitted').length;
-  const inProgressTeams = teams.filter(t => t.status === 'in_progress').length;
-  const pendingTeams = teams.filter(t => t.status === 'problem_pending').length;
+  const summaryHeaders = [
+    'Team Name',
+    'Team Lead Name',
+    'Lead USN/Reg',
+    'Lead Email',
+    'Lead Mobile',
+    'Training Room',
+    'Department / Div',
+    'Allocated Problem Statement Title',
+    'Frontend (UI) GitHub Repo',
+    'Backend (API) GitHub Repo',
+    'Live Deployed App URL',
+    'Evaluation Score (0-100)',
+    'Current Status'
+  ];
 
-  overviewSheet.addRow([]);
-  overviewSheet.addRow(['METRIC CARD', 'VALUE', 'REMARKS']);
-  const headRow = overviewSheet.getRow(8);
-  headRow.font = { bold: true, color: { argb: 'FFFFFF' } };
-  headRow.eachCell(c => c.fill = STYLES.accentFill);
-
-  overviewSheet.addRow(['Total Registered Teams', totalTeams, 'All created accounts']);
-  overviewSheet.addRow(['Final Submissions Done', submittedTeams, 'Completed evaluations']);
-  overviewSheet.addRow(['Teams In Progress', inProgressTeams, 'Allocated & Working']);
-  overviewSheet.addRow(['Pending Team Allocations', pendingTeams, 'Problem not selected yet']);
-
-  [9, 10, 11, 12].forEach(rIdx => {
-    overviewSheet.getRow(rIdx).eachCell(c => c.border = STYLES.thinBorder);
-    overviewSheet.getCell(`B${rIdx}`).font = { bold: true };
-  });
-
-  autoWidthColumns(overviewSheet);
-
-
-  // SHEET 2: ALLOCATIONS LIST
-  const allocationsSheet = workbook.addWorksheet('Team Allocations');
-  allocationsSheet.addRow(['Team Name', 'Team Lead', 'Selected Project Title', 'Remaining Changes', 'Work Status']);
-  const allocHeader = allocationsSheet.getRow(1);
-  allocHeader.font = { bold: true, color: { argb: 'FFFFFF' } };
-  allocHeader.eachCell(c => {
-    c.fill = STYLES.headerFill;
+  const headerRow = masterSheet.addRow(summaryHeaders);
+  headerRow.height = 28;
+  headerRow.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFF' } };
+  headerRow.eachCell(c => {
+    c.fill = STYLES.accentFill;
+    c.alignment = { vertical: 'middle', horizontal: 'left' };
     c.border = STYLES.thinBorder;
   });
 
-  teams.forEach((t, i) => {
-    const row = allocationsSheet.addRow([
+  teams.forEach((t, idx) => {
+    const sub = submissionsMap[t._id] || {};
+    const ev = evaluationsMap[t._id] || {};
+
+    const row = masterSheet.addRow([
       t.name,
       t.leadName || t.leadUsername,
-      t.problemStatementId?.title || '— None selected —',
-      `${3 - (t.problemChangeCount || 0)} left`,
-      t.status.toUpperCase().replace('_', ' ')
+      t.usnRollNumber || '—',
+      t.email,
+      t.mobile || '—',
+      t.roomNumber || '—',
+      `${t.dept || '—'} ${t.division || ''}`.trim(),
+      t.problemStatementId?.title || 'None Selected',
+      sub.githubUrl || '— Not Submitted —',
+      sub.backendGithubUrl || '— Not Submitted —',
+      sub.deployedUrl || '— Not Deployed —',
+      ev.score !== undefined && ev.score !== null ? `${ev.score}/100` : 'Not Evaluated',
+      (t.status || 'problem_pending').toUpperCase().replace('_', ' ')
     ]);
+    row.height = 22;
+
     row.eachCell((cell, colIdx) => {
       cell.border = STYLES.thinBorder;
-      cell.fill = i % 2 === 0 ? STYLES.zebraFill : STYLES.whiteFill;
+      cell.fill = idx % 2 === 0 ? STYLES.zebraFill : STYLES.whiteFill;
 
-      if (colIdx === 5) {
-        const rawStatus = t.status.toLowerCase();
+      if (colIdx === 13) {
+        const rawStatus = (t.status || '').toLowerCase();
         if (STYLES.statusFills[rawStatus]) {
           cell.fill = STYLES.statusFills[rawStatus];
-          cell.font = STYLES.statusTexts[rawStatus];
+          cell.font = { name: 'Segoe UI', size: 10, ...STYLES.statusTexts[rawStatus] };
+          cell.alignment = { horizontal: 'center' };
         }
       }
     });
   });
 
-  autoWidthColumns(allocationsSheet);
+  autoWidthColumns(masterSheet);
 
 
-  // SHEET 3: MASTER ROSTER (ALL INDIVIDUAL STUDENTS)
-  const rosterSheet = workbook.addWorksheet('Master Roster');
-  
-  const rosterHeaders = [
-    'Student Name',
-    'Role',
-    'USN / Roll Number',
-    'Email Address',
-    'Mobile Phone',
-    'Department',
-    'Division',
-    'Room Number',
-    'Course Name',
-    'Belongs to Team'
-  ];
+  // INDIVIDUAL SHEETS: ONE SHEET PER TEAM (#01, #02, ..., #39)
+  teams.forEach((t, tIdx) => {
+    const sheetName = (t.name || `Team ${tIdx + 1}`).replace(/[*?:/\\\[\]]/g, '').substring(0, 30);
+    const teamSheet = workbook.addWorksheet(sheetName);
 
-  const rosterHeaderRow = rosterSheet.addRow(rosterHeaders);
-  rosterHeaderRow.font = { bold: true, color: { argb: 'FFFFFF' } };
-  rosterHeaderRow.eachCell(c => {
-    c.fill = STYLES.accentFill;
-    c.border = STYLES.thinBorder;
-  });
+    // Title
+    teamSheet.mergeCells('A1:I1');
+    const tTitle = teamSheet.getCell('A1');
+    tTitle.value = `TEAM DOSSIER: ${t.name.toUpperCase()}`;
+    tTitle.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FFFFFF' } };
+    tTitle.fill = STYLES.headerFill;
+    tTitle.alignment = { vertical: 'middle', horizontal: 'center' };
+    teamSheet.getRow(1).height = 36;
 
-  let rowCounter = 0;
-  teams.forEach(t => {
-    // Add Team Lead
-    const leadRow = rosterSheet.addRow([
-      t.leadName || t.leadUsername,
+    // Metadata block
+    teamSheet.addRow([]);
+    teamSheet.addRow(['Account Username:', t.leadUsername, '', 'Status:', (t.status || 'N/A').toUpperCase()]);
+    teamSheet.addRow(['Allocated Problem:', t.problemStatementId?.title || 'None Selected', '', 'Training Room:', t.roomNumber || '—']);
+    teamSheet.addRow(['Contact Email:', t.email, '', 'Mobile Phone:', t.mobile || '—']);
+
+    [3, 4, 5].forEach(rIdx => {
+      teamSheet.getRow(rIdx).font = { name: 'Segoe UI', size: 10 };
+      teamSheet.getCell(`A${rIdx}`).font = { bold: true, color: { argb: '1E3A8A' } };
+      teamSheet.getCell(`D${rIdx}`).font = { bold: true, color: { argb: '1E3A8A' } };
+    });
+
+    // Deliverables Section
+    const sub = submissionsMap[t._id] || {};
+    teamSheet.addRow([]);
+    teamSheet.addRow(['DELIVERABLE LINKS']);
+    teamSheet.mergeCells('A7:I7');
+    teamSheet.getCell('A7').font = { bold: true, size: 11, color: { argb: '1E3A8A' } };
+
+    teamSheet.addRow(['Frontend (UI) GitHub:', sub.githubUrl || '— Not Submitted —']);
+    teamSheet.addRow(['Backend (API) GitHub:', sub.backendGithubUrl || '— Not Submitted —']);
+    teamSheet.addRow(['Live Deployment URL:', sub.deployedUrl || '— Not Deployed —']);
+    [8, 9, 10].forEach(rIdx => {
+      teamSheet.getCell(`A${rIdx}`).font = { bold: true };
+    });
+
+    teamSheet.addRow([]);
+
+    // Roster Table
+    teamSheet.addRow(['STUDENT ROSTER']);
+    teamSheet.mergeCells('A12:I12');
+    teamSheet.getCell('A12').font = { bold: true, size: 11, color: { argb: '1E3A8A' } };
+
+    const rosterHeaders = ['Role', 'Student Name', 'USN / Reg Number', 'Email Address', 'Mobile Phone', 'Department', 'Division', 'Room Number', 'Course Name'];
+    const rHeadRow = teamSheet.addRow(rosterHeaders);
+    rHeadRow.font = { bold: true, color: { argb: 'FFFFFF' } };
+    rHeadRow.eachCell(c => {
+      c.fill = STYLES.accentFill;
+      c.border = STYLES.thinBorder;
+    });
+
+    // Lead row
+    const leadR = teamSheet.addRow([
       'Team Lead',
+      t.leadName || t.leadUsername,
       t.usnRollNumber || '—',
       t.email,
       t.mobile || '—',
       t.dept || '—',
       t.division || '—',
       t.roomNumber || '—',
-      t.courseName || '—',
-      t.name
+      t.courseName || '—'
     ]);
-    leadRow.eachCell(c => {
+    leadR.eachCell(c => {
       c.fill = STYLES.subheaderFill;
       c.font = { bold: true };
       c.border = STYLES.thinBorder;
     });
 
-    // Add Members
-    (t.members || []).forEach(m => {
-      const memberRow = rosterSheet.addRow([
-        m.name,
+    // Members rows
+    (t.members || []).forEach((m, mIdx) => {
+      const mRow = teamSheet.addRow([
         'Member',
+        m.name,
         m.rollNumber,
         m.email || '—',
         m.mobile || '—',
         m.dept || '—',
         m.division || '—',
         m.roomNumber || '—',
-        m.courseName || '—',
-        t.name
+        m.courseName || '—'
       ]);
-      memberRow.eachCell(c => {
-        c.fill = rowCounter % 2 === 0 ? STYLES.zebraFill : STYLES.whiteFill;
+      mRow.eachCell(c => {
+        c.fill = mIdx % 2 === 0 ? STYLES.zebraFill : STYLES.whiteFill;
         c.border = STYLES.thinBorder;
       });
-      rowCounter++;
     });
-  });
 
-  autoWidthColumns(rosterSheet);
+    teamSheet.addRow([]);
+
+    // Daily Logs Section inside Team Sheet
+    teamSheet.addRow(['DAILY WORK LOGS']);
+    const logHeaderRowIdx = teamSheet.lastRow.number;
+    teamSheet.mergeCells(`A${logHeaderRowIdx}:I${logHeaderRowIdx}`);
+    teamSheet.getCell(`A${logHeaderRowIdx}`).font = { bold: true, size: 11, color: { argb: '1E3A8A' } };
+
+    const logHeaders = ['Log Date', 'Student Name', 'USN/Reg Number', 'Work Completed Task Description', 'Day Score', 'Status'];
+    const logHeadRow = teamSheet.addRow(logHeaders);
+    logHeadRow.font = { bold: true, color: { argb: 'FFFFFF' } };
+    logHeadRow.eachCell(c => {
+      c.fill = STYLES.accentFill;
+      c.border = STYLES.thinBorder;
+    });
+
+    const teamLogs = logsByTeamMap[t._id] || [];
+    if (teamLogs.length === 0) {
+      const emptyRow = teamSheet.addRow(['—', '—', '—', '(No daily work logs submitted by this team yet)', '—', '—']);
+      emptyRow.eachCell(c => {
+        c.border = STYLES.thinBorder;
+        c.font = { italic: true, color: { argb: '94A3B8' } };
+        c.alignment = { horizontal: 'center' };
+      });
+    } else {
+      let rCnt = 0;
+      teamLogs.forEach(logDay => {
+        const logDate = logDay.date;
+        const scoreVal = logDay.score !== null ? `${logDay.score}/100` : 'Not Graded';
+        const releaseStatus = logDay.isScoreReleased ? 'RELEASED' : 'AWAITING RELEASE';
+
+        (logDay.logs || []).forEach(mLog => {
+          const row = teamSheet.addRow([
+            logDate,
+            mLog.name,
+            mLog.rollNumber,
+            mLog.taskDone || '(No work logged)',
+            scoreVal,
+            releaseStatus
+          ]);
+          row.eachCell((c) => {
+            c.border = STYLES.thinBorder;
+            c.fill = rCnt % 2 === 0 ? STYLES.zebraFill : STYLES.whiteFill;
+          });
+          rCnt++;
+        });
+      });
+    }
+
+    autoWidthColumns(teamSheet);
+    teamSheet.getColumn(4).width = 45;
+  });
 
   await saveWorkbook(workbook, `capstone_project_${project.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_master_report.xlsx`);
 };

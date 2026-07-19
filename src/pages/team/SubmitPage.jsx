@@ -18,7 +18,8 @@ function SubmittedView({ submission }) {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {[
-          { label: 'GitHub', value: submission.githubUrl, icon: GitBranch, href: submission.githubUrl },
+          { label: 'Frontend (UI) GitHub', value: submission.githubUrl, icon: GitBranch, href: submission.githubUrl },
+          { label: 'Backend (API) GitHub', value: submission.backendGithubUrl || '—', icon: GitBranch, href: submission.backendGithubUrl },
           { label: 'Deployed URL', value: submission.deployedUrl || '—', icon: Globe, href: submission.deployedUrl },
           { label: 'Demo Video', value: submission.demoVideoUrl || '—', icon: Video, href: submission.demoVideoUrl },
           { label: 'Submitted At', value: new Date(submission.submittedAt).toLocaleString(), icon: CheckCircle, href: null },
@@ -45,7 +46,7 @@ export default function SubmitPage() {
   const [team, setTeam] = useState(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [form, setForm] = useState({ githubUrl: '', deployedUrl: '', demoVideoUrl: '' })
+  const [form, setForm] = useState({ githubUrl: '', backendGithubUrl: '', deployedUrl: '', demoVideoUrl: '' })
   const [docFile, setDocFile] = useState(null)
   const [errors, setErrors] = useState({})
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -58,8 +59,8 @@ export default function SubmitPage() {
 
   const validate = () => {
     const e = {}
-    if (!form.githubUrl) e.githubUrl = 'GitHub URL is required'
-    else if (!/^https?:\/\/(www\.)?github\.com\/[^/]+\/[^/]+/.test(form.githubUrl)) e.githubUrl = 'Must be a valid GitHub repository URL (https://github.com/user/repo)'
+    if (!form.githubUrl) e.githubUrl = 'Frontend GitHub URL is required'
+    else if (!/^https?:\/\/(www\.)?github\.com\/[^/]+\/[^/]+/.test(form.githubUrl)) e.githubUrl = 'Must be a valid GitHub repository URL'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -71,6 +72,7 @@ export default function SubmitPage() {
     try {
       const formData = new FormData()
       formData.append('githubUrl', form.githubUrl)
+      formData.append('backendGithubUrl', form.backendGithubUrl)
       formData.append('deployedUrl', form.deployedUrl)
       formData.append('demoVideoUrl', form.demoVideoUrl)
       if (docFile) formData.append('docFile', docFile)
@@ -108,10 +110,17 @@ export default function SubmitPage() {
         {/* Form */}
         <motion.div className="glass" style={{ borderRadius: 20, padding: 28 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <form onSubmit={handleSubmit}>
-            <FormField label="GitHub Repository URL *" id="github-url" error={errors.githubUrl}>
+            <FormField label="Frontend (UI) GitHub Repository URL *" id="github-url" error={errors.githubUrl}>
               <div style={{ position: 'relative' }}>
                 <GitBranch size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#5c5c7b' }} />
-                <input id="github-url" className="input-dark" style={{ paddingLeft: 36 }} placeholder="https://github.com/username/repo" value={form.githubUrl} onChange={e => { set('githubUrl', e.target.value); setErrors(er => ({ ...er, githubUrl: '' })) }} />
+                <input id="github-url" className="input-dark" style={{ paddingLeft: 36 }} placeholder="https://github.com/username/frontend-repo" value={form.githubUrl} onChange={e => { set('githubUrl', e.target.value); setErrors(er => ({ ...er, githubUrl: '' })) }} />
+              </div>
+            </FormField>
+
+            <FormField label="Backend (API) GitHub Repository URL (optional)" id="backend-github-url">
+              <div style={{ position: 'relative' }}>
+                <GitBranch size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#5c5c7b' }} />
+                <input id="backend-github-url" className="input-dark" style={{ paddingLeft: 36 }} placeholder="https://github.com/username/backend-repo" value={form.backendGithubUrl} onChange={e => set('backendGithubUrl', e.target.value)} />
               </div>
             </FormField>
 

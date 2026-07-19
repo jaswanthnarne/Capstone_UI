@@ -50,24 +50,31 @@ function CreateTeamForm({ onSubmit, loading }) {
           </button>
         </div>
         {members.map((m, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr auto', gap: 6, marginBottom: 8 }}>
-            <input className="input-dark" style={{ fontSize: 12 }} placeholder="Name" value={m.name} onChange={e => updateMember(i, 'name', e.target.value)} required />
-            <input className="input-dark" style={{ fontSize: 12 }} placeholder="Roll No" value={m.rollNumber} onChange={e => updateMember(i, 'rollNumber', e.target.value)} required />
-            <input className="input-dark" style={{ fontSize: 12 }} placeholder="Email" type="email" value={m.email} onChange={e => updateMember(i, 'email', e.target.value)} required />
-            <button type="button" onClick={() => removeMember(i)} className="btn-danger" style={{ padding: '4px 8px' }}>✕</button>
-          </div>
-        ))}
-      </div>
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-      <button type="submit" className="btn-primary w-full" style={{ width: '100%', justifyContent: 'center', padding: 12, marginTop: 14 }} disabled={loading}>
-        {loading ? <span className="spinner" style={{ width: 18, height: 18 }} /> : 'Create Team (Credential Mail Sent)'}
+  return (
+    <form onSubmit={e => { e.preventDefault(); onSubmit(form) }}>
+      <FormField label="Team Name" id="team-name">
+        <input id="team-name" className="input-dark" placeholder="e.g. Team Alpha" value={form.name} onChange={e => set('name', e.target.value)} required />
+      </FormField>
+      <FormField label="Lead Username" id="team-username">
+        <input id="team-username" className="input-dark" placeholder="e.g. leadalpha" value={form.leadUsername} onChange={e => set('leadUsername', e.target.value)} required />
+      </FormField>
+      <FormField label="Lead Email" id="team-email">
+        <input id="team-email" className="input-dark" type="email" placeholder="lead@college.edu" value={form.email} onChange={e => set('email', e.target.value)} required />
+      </FormField>
+      <FormField label="Password" id="team-password">
+        <input id="team-password" className="input-dark" type="password" placeholder="••••••••" value={form.password} onChange={e => set('password', e.target.value)} required />
+      </FormField>
+      <button type="submit" id="save-team-btn" className="btn-primary w-full" style={{ width: '100%', justifyContent: 'center', padding: 12, marginTop: 8 }} disabled={loading}>
+        {loading ? <span className="spinner" style={{ width: 18, height: 18 }} /> : 'Create Team & Lead'}
       </button>
     </form>
   )
 }
 
 // Override Modal Form Component
-function OverrideTeamForm({ team, problems, onSubmit, loading }) {
+function EditTeamModal({ team, problems, onSubmit, loading }) {
   const [form, setForm] = useState({
     name: team.name || '',
     leadUsername: team.leadUsername || '',
@@ -85,38 +92,38 @@ function OverrideTeamForm({ team, problems, onSubmit, loading }) {
 
   return (
     <form onSubmit={e => { e.preventDefault(); onSubmit({ ...form, members }) }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <FormField label="Team Name">
-          <input className="input-dark" value={form.name} onChange={e => set('name', e.target.value)} required />
-        </FormField>
-        <FormField label="Lead Username">
-          <input className="input-dark" value={form.leadUsername} onChange={e => set('leadUsername', e.target.value)} required />
-        </FormField>
-        <FormField label="Lead Email">
-          <input className="input-dark" type="email" value={form.email} onChange={e => set('email', e.target.value)} required />
-        </FormField>
-        <FormField label="Reset Password (optional)">
-          <input className="input-dark" type="password" placeholder="Leave blank to keep" value={form.password} onChange={e => set('password', e.target.value)} />
-        </FormField>
-        <FormField label="Problem Statement">
-          <select className="input-dark" value={form.problemStatementId} onChange={e => set('problemStatementId', e.target.value)}>
-            <option value="">None</option>
-            {problems.map(p => <option key={p._id} value={p._id}>{p.title}</option>)}
-          </select>
-        </FormField>
-        <FormField label="Project Status">
-          <select className="input-dark" value={form.status} onChange={e => set('status', e.target.value)}>
-            <option value="problem_pending">Pending Problem</option>
-            <option value="in_progress">In Progress</option>
-            <option value="submitted">Submitted</option>
-          </select>
-        </FormField>
-      </div>
+      <FormField label="Team Name">
+        <input className="input-dark" value={form.name} onChange={e => set('name', e.target.value)} required />
+      </FormField>
+      <FormField label="Lead Username">
+        <input className="input-dark" value={form.leadUsername} onChange={e => set('leadUsername', e.target.value)} required />
+      </FormField>
+      <FormField label="Lead Email">
+        <input className="input-dark" type="email" value={form.email} onChange={e => set('email', e.target.value)} required />
+      </FormField>
+      <FormField label="Reset Password (optional)">
+        <input className="input-dark" type="password" placeholder="Leave empty to keep current" value={form.password} onChange={e => set('password', e.target.value)} />
+      </FormField>
+      <FormField label="Allocated Problem Statement">
+        <select className="input-dark" value={form.problemStatementId} onChange={e => set('problemStatementId', e.target.value)}>
+          <option value="">None (Let team select)</option>
+          {problems.map(p => (
+            <option key={p._id} value={p._id}>{p.title}</option>
+          ))}
+        </select>
+      </FormField>
+      <FormField label="Team Status">
+        <select className="input-dark" value={form.status} onChange={e => set('status', e.target.value)}>
+          <option value="problem_pending">Pending</option>
+          <option value="in_progress">In Progress</option>
+          <option value="submitted">Submitted</option>
+        </select>
+      </FormField>
 
-      <div style={{ marginTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 14 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <label style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>Active Members (Admin Override)</label>
-          <button type="button" onClick={addMember} className="btn-secondary" style={{ padding: '4px 10px', fontSize: 11 }}>
+      <div style={{ marginTop: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}>Team Members ({members.length})</label>
+          <button type="button" onClick={addMember} className="btn-secondary" style={{ padding: '2px 8px', fontSize: 12 }}>
             + Add Member
           </button>
         </div>
@@ -135,7 +142,17 @@ function OverrideTeamForm({ team, problems, onSubmit, loading }) {
           type="button"
           className="btn-secondary"
           style={{ flex: 1, justifyContent: 'center' }}
-          onClick={() => exportTeamExcel(team)}
+          onClick={async () => {
+            try {
+              const loader = toast.loading('Fetching team logs...');
+              const lRes = await getTeamDailyLogs(team._id);
+              toast.dismiss(loader);
+              await exportTeamExcel(team, lRes.data.data || []);
+            } catch (err) {
+              toast.dismiss();
+              await exportTeamExcel(team, []);
+            }
+          }}
         >
           <Download size={14} /> Export Team (Excel)
         </button>
