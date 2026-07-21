@@ -67,7 +67,7 @@ function CreateTeamForm({ onSubmit, loading }) {
 }
 
 // Override Modal Form Component
-function EditTeamModal({ team, problems, onSubmit, loading }) {
+function OverrideTeamForm({ team, problems, onSubmit, loading }) {
   const [form, setForm] = useState({
     name: team.name || '',
     leadUsername: team.leadUsername || '',
