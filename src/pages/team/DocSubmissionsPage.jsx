@@ -48,12 +48,31 @@ export default function DocSubmissionsPage() {
     }
 
     setUploadingId(requestId)
-    const formData = new FormData()
-    formData.append('requestId', requestId)
-    formData.append('docFile', file)
 
     try {
-      const res = await submitDocRequest(formData)
+      let res;
+      
+      // If file size > 1.5MB or docx/pdf file, convert to Base64 to bypass Vercel 4.5MB 413 limit
+      if (fileSizeInMB > 1.5 || ext === 'docx' || ext === 'doc' || ext === 'pdf') {
+        const base64Data = await new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.readAsDataURL(file)
+          reader.onload = () => resolve(reader.result)
+          reader.onerror = error => reject(error)
+        })
+
+        res = await submitDocRequest({
+          requestId,
+          fileName: file.name,
+          fileData: base64Data,
+          fileSize: fileSizeInMB.toFixed(2)
+        })
+      } else {
+        const formData = new FormData()
+        formData.append('requestId', requestId)
+        formData.append('docFile', file)
+        res = await submitDocRequest(formData)
+      }
       
       // Update local state to show uploaded file info and updated changeCount
       const updatedRequests = requests.map(req => {

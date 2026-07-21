@@ -21,7 +21,8 @@ function EvalForm({ submission, existing, onSubmit, loading }) {
       <div className="glass" style={{ borderRadius: 10, padding: 14, marginBottom: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 4 }}>{submission.teamId?.name}</div>
         <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{submission.teamId?.leadUsername}</div>
-        {submission.githubUrl && <a href={submission.githubUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--color-accent)', display: 'block', marginTop: 6 }}>🔗 GitHub Repo</a>}
+        {submission.githubUrl && <a href={submission.githubUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--color-accent)', display: 'block', marginTop: 6 }}>🔗 Frontend GitHub Repo</a>}
+        {submission.backendGithubUrl && <a href={submission.backendGithubUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: 'var(--color-accent)', display: 'block', marginTop: 2 }}>🔗 Backend GitHub Repo</a>}
         {submission.deployedUrl && <a href={submission.deployedUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: '#16a34a', display: 'block', marginTop: 2 }}>🌐 Deployed App</a>}
       </div>
 
@@ -192,7 +193,7 @@ export default function EvaluationsPage() {
           <div style={{ overflowX: 'auto' }}>
             <table className="table-dark w-full" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr><th>Team</th><th>Batch</th><th>GitHub</th><th>Submitted</th><th>Score</th><th>Action</th></tr>
+                <tr><th>Team</th><th>Batch</th><th>Links</th><th>Submitted</th><th>Score</th><th>Action</th></tr>
               </thead>
               <tbody>
                 {submissions.map(sub => {
@@ -205,9 +206,23 @@ export default function EvaluationsPage() {
                       </td>
                       <td style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>{sub.batchId?.name}</td>
                       <td>
-                        <a href={sub.githubUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)', fontSize: 12 }}>
-                          View →
-                        </a>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {sub.githubUrl && (
+                            <a href={sub.githubUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)', fontSize: 12 }}>
+                              Frontend Repo →
+                            </a>
+                          )}
+                          {sub.backendGithubUrl && (
+                            <a href={sub.backendGithubUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--color-accent)', fontSize: 12 }}>
+                              Backend Repo →
+                            </a>
+                          )}
+                          {sub.deployedUrl && (
+                            <a href={sub.deployedUrl} target="_blank" rel="noreferrer" style={{ color: '#10b981', fontSize: 12 }}>
+                              Deployed →
+                            </a>
+                          )}
+                        </div>
                       </td>
                       <td style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                         {new Date(sub.submittedAt).toLocaleDateString()}
