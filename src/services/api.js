@@ -10,7 +10,7 @@ const getBaseURL = () => {
       .replace(/\\n/g, '')       // Remove escaped \n
       .trim();
   }
-  return 'https://backend-jaswanth-s.vercel.app/api';
+  return 'https://backend-five-ivory-mbo6c3m4p1.vercel.app/api';
 };
 
 const api = axios.create({
