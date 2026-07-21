@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Users, Search, Plus, Filter, AlertCircle, Trash2, Save, Download, Check, Clock, Star, FileText, Lightbulb, Zap, Code2, Edit } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Users, Search, Plus, Filter, AlertCircle, Trash2, Save, Download, Check, Clock, Star,
+  FileText, Lightbulb, Zap, Code2, Edit, LayoutGrid, List, ChevronRight, UserCheck, Shield, ExternalLink, RefreshCw
+} from 'lucide-react'
 import toast from 'react-hot-toast'
 import {
   getAllTeams, getColleges, getBatches, getSubjects, createTeam,
@@ -9,7 +13,6 @@ import {
   getAllDailyLogs, overrideDailyLog
 } from '../../services/api'
 import { EmptyState, SectionHeader, StatusBadge, LoadingSpinner, Modal, FormField } from '../../components/ui'
-import { useNavigate } from 'react-router-dom'
 import { exportTeamExcel, exportTeamLogsExcel, exportAllLogsExcel } from '../../utils/excelExport'
 
 function CreateTeamForm({ batches, onSubmit, loading, defaultBatchId }) {
@@ -19,20 +22,20 @@ function CreateTeamForm({ batches, onSubmit, loading, defaultBatchId }) {
   return (
     <form onSubmit={e => { e.preventDefault(); onSubmit(form) }}>
       <FormField label="Team Name" id="team-name">
-        <input id="team-name" className="input-dark" placeholder="e.g. Team Alpha" value={form.name} onChange={e => set('name', e.target.value)} required />
+        <input id="team-name" className="input-dark" placeholder="e.g. Team Alpha (AI Vision)" value={form.name} onChange={e => set('name', e.target.value)} required />
       </FormField>
       <FormField label="Lead Username" id="team-username">
         <input id="team-username" className="input-dark" placeholder="e.g. leadalpha" value={form.leadUsername} onChange={e => set('leadUsername', e.target.value)} required />
       </FormField>
-      <FormField label="Lead Email" id="team-email">
+      <FormField label="Lead Email Address" id="team-email">
         <input id="team-email" className="input-dark" type="email" placeholder="lead@college.edu" value={form.email} onChange={e => set('email', e.target.value)} required />
       </FormField>
-      <FormField label="Password" id="team-password">
+      <FormField label="Access Password" id="team-password">
         <input id="team-password" className="input-dark" type="password" placeholder="••••••••" value={form.password} onChange={e => set('password', e.target.value)} required />
       </FormField>
-      <FormField label="Select Batch (Capstone Project Course)" id="team-batch">
+      <FormField label="Assign Batch (Capstone Course)" id="team-batch">
         <select id="team-batch" className="input-dark" value={form.batchId} onChange={e => set('batchId', e.target.value)} required>
-          <option value="">Choose a batch...</option>
+          <option value="">Select Target Batch...</option>
           {batches.map(b => (
             <option key={b._id} value={b._id}>
               {b.name} — {b.collegeId?.name} ({b.subjectId?.name})
@@ -40,8 +43,8 @@ function CreateTeamForm({ batches, onSubmit, loading, defaultBatchId }) {
           ))}
         </select>
       </FormField>
-      <button type="submit" id="save-team-btn" className="btn-primary w-full" style={{ width: '100%', justifyContent: 'center', padding: 12, marginTop: 8 }} disabled={loading}>
-        {loading ? <span className="spinner" style={{ width: 18, height: 18 }} /> : 'Create Team & Lead'}
+      <button type="submit" id="save-team-btn" className="btn-primary w-full" style={{ width: '100%', justifyContent: 'center', padding: 12, marginTop: 12 }} disabled={loading}>
+        {loading ? <span className="spinner" style={{ width: 18, height: 18 }} /> : 'Create Team Account & Credentials'}
       </button>
     </form>
   )
@@ -107,12 +110,8 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
   }
 
   useEffect(() => {
-    if (activeTab === 'logs') {
-      loadLogs()
-    }
-    if (activeTab === 'docs') {
-      loadDocs()
-    }
+    if (activeTab === 'logs') loadLogs()
+    if (activeTab === 'docs') loadDocs()
   }, [activeTab])
 
   useEffect(() => {
@@ -138,7 +137,7 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
     setSaving(true)
     try {
       await adminOverrideTeam(team._id, { ...form, members })
-      toast.success('Team details updated!')
+      toast.success('Team details updated successfully!')
       onUpdate()
       onClose()
     } catch (err) {
@@ -149,7 +148,7 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
   }
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this team entirely and all its associated data (submissions, evaluations, etc.)? This cannot be undone.')) return
+    if (!window.confirm(`Are you sure you want to permanently delete team "${team.name}" and all associated data? This action cannot be reversed.`)) return
     setDeleting(true)
     try {
       await deleteTeam(team._id)
@@ -168,70 +167,54 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
   const submission = submissions[0]
   const evaluation = evals[0]
   const milestoneCount = milestones.filter(m => m.status === 'done').length
-
   const minLimit = team.batchId?.minMembers || 2
   const maxLimit = team.batchId?.maxMembers || 6
   const totalMembers = members.length + 1
   const isSizeInvalid = totalMembers < minLimit || totalMembers > maxLimit
 
   const getMilestoneStyle = (status) => {
-    if (status === 'done') return { color: '#3ECF8E', background: 'rgba(62,207,142,0.08)', border: '1px solid rgba(62,207,142,0.15)' }
-    if (status === 'in_progress') return { color: '#F2B84B', background: 'rgba(242,184,75,0.08)', border: '1px solid rgba(242,184,75,0.15)' }
-    return { color: '#8B92A8', background: 'rgba(139,146,168,0.08)', border: '1px solid rgba(139,146,168,0.15)' }
+    if (status === 'done') return { color: '#3ECF8E', background: 'rgba(62,207,142,0.08)', border: '1px solid rgba(62,207,142,0.2)' }
+    if (status === 'in_progress') return { color: '#F2B84B', background: 'rgba(242,184,75,0.08)', border: '1px solid rgba(242,184,75,0.2)' }
+    return { color: '#8B92A8', background: 'rgba(139,146,168,0.08)', border: '1px solid rgba(139,146,168,0.2)' }
   }
 
   return (
     <div>
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 10, borderBottom: '1px solid rgba(0,0,0,0.08)', marginBottom: 20 }}>
-        <button
-          type="button"
-          onClick={() => setActiveTab('crud')}
-          style={{
-            background: 'none', border: 'none', color: activeTab === 'crud' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-            padding: '8px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            borderBottom: activeTab === 'crud' ? '2px solid var(--color-accent)' : '2px solid transparent',
-            marginBottom: '-1px'
-          }}
-        >
-          Team CRUD Operations
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('analysis')}
-          style={{
-            background: 'none', border: 'none', color: activeTab === 'analysis' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-            padding: '8px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            borderBottom: activeTab === 'analysis' ? '2px solid var(--color-accent)' : '2px solid transparent',
-            marginBottom: '-1px'
-          }}
-        >
-          Project Analysis & Status
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('logs')}
-          style={{
-            background: 'none', border: 'none', color: activeTab === 'logs' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-            padding: '8px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            borderBottom: activeTab === 'logs' ? '2px solid var(--color-accent)' : '2px solid transparent',
-            marginBottom: '-1px'
-          }}
-        >
-          Daily Work Logs
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('docs')}
-          style={{
-            background: 'none', border: 'none', color: activeTab === 'docs' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-            padding: '8px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            borderBottom: activeTab === 'docs' ? '2px solid var(--color-accent)' : '2px solid transparent',
-            marginBottom: '-1px'
-          }}
-        >
-          Uploaded Documents
-        </button>
+      {/* Tab Navigation */}
+      <div style={{ display: 'flex', gap: 10, borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 20, overflowX: 'auto' }}>
+        {[
+          { id: 'crud', label: 'Team Configuration', icon: Edit },
+          { id: 'analysis', label: 'Project Progress', icon: Lightbulb },
+          { id: 'logs', label: 'Daily Work Logs', icon: Clock },
+          { id: 'docs', label: 'Uploaded Documents', icon: FileText }
+        ].map(tab => {
+          const IconComponent = tab.icon
+          const isActive = activeTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                padding: '10px 14px',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                borderBottom: isActive ? '2px solid var(--color-accent)' : '2px solid transparent',
+                marginBottom: '-1px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <IconComponent size={14} /> {tab.label}
+            </button>
+          )
+        })}
       </div>
 
       {activeTab === 'crud' ? (
@@ -247,41 +230,43 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
               <input className="input-dark" type="email" value={form.email} onChange={e => set('email', e.target.value)} required />
             </FormField>
             <FormField label="Reset Password (optional)">
-              <input className="input-dark" type="password" placeholder="Leave blank to keep" value={form.password} onChange={e => set('password', e.target.value)} />
+              <input className="input-dark" type="password" placeholder="Leave blank to keep current" value={form.password} onChange={e => set('password', e.target.value)} />
             </FormField>
-            <FormField label="Problem Statement">
+            <FormField label="Allocated Problem Statement">
               <select className="input-dark" value={form.problemStatementId} onChange={e => set('problemStatementId', e.target.value)}>
-                <option value="">None</option>
+                <option value="">None (Team select pending)</option>
                 {problems.map(p => <option key={p._id} value={p._id}>{p.title}</option>)}
               </select>
             </FormField>
             <FormField label="Project Status">
               <select className="input-dark" value={form.status} onChange={e => set('status', e.target.value)}>
-                <option value="problem_pending">Pending Problem</option>
+                <option value="problem_pending">Pending Problem Selection</option>
                 <option value="in_progress">In Progress</option>
-                <option value="submitted">Submitted</option>
+                <option value="submitted">Submitted Deliverables</option>
               </select>
             </FormField>
           </div>
 
-          <div style={{ marginTop: 14, borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 14 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <label style={{ fontSize: 13, color: 'var(--color-text-secondary)', fontWeight: 600 }}>Team Members</label>
-              <button type="button" onClick={addMember} className="btn-secondary" style={{ padding: '4px 10px', fontSize: 11 }}>
+          <div style={{ marginTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <label style={{ fontSize: 13, color: 'var(--color-text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Users size={14} /> Team Roster Members ({totalMembers} total)
+              </label>
+              <button type="button" onClick={addMember} className="btn-secondary" style={{ padding: '5px 12px', fontSize: 11 }}>
                 + Add Member
               </button>
             </div>
             {members.map((m, i) => (
-              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr auto', gap: 6, marginBottom: 8 }}>
-                <input className="input-dark" style={{ fontSize: 12 }} placeholder="Name" value={m.name} onChange={e => updateMember(i, 'name', e.target.value)} required />
-                <input className="input-dark" style={{ fontSize: 12 }} placeholder="Roll No" value={m.rollNumber} onChange={e => updateMember(i, 'rollNumber', e.target.value)} required />
-                <input className="input-dark" style={{ fontSize: 12 }} placeholder="Email" type="email" value={m.email} onChange={e => updateMember(i, 'email', e.target.value)} required />
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr auto', gap: 8, marginBottom: 8 }}>
+                <input className="input-dark" style={{ fontSize: 12 }} placeholder="Student Name" value={m.name} onChange={e => updateMember(i, 'name', e.target.value)} required />
+                <input className="input-dark" style={{ fontSize: 12 }} placeholder="Roll No / USN" value={m.rollNumber} onChange={e => updateMember(i, 'rollNumber', e.target.value)} required />
+                <input className="input-dark" style={{ fontSize: 12 }} placeholder="Email Address" type="email" value={m.email} onChange={e => updateMember(i, 'email', e.target.value)} required />
                 <button type="button" onClick={() => removeMember(i)} className="btn-danger" style={{ padding: '4px 8px' }}>✕</button>
               </div>
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+          <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
             <button type="button" onClick={handleDelete} className="btn-danger" disabled={deleting} style={{ padding: '10px 16px' }}>
               <Trash2 size={14} /> Delete Team
             </button>
@@ -294,11 +279,10 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
             </button>
           </div>
         </form>
-      ) : (
+      ) : activeTab === 'analysis' ? (
         <div className="grid-2-responsive" style={{ gap: 20 }}>
-          {/* Milestones and stats */}
           <div>
-            <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>Milestones Progression</h4>
+            <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>Milestone Milestones</h4>
             {milestones.length === 0 ? (
               <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>No milestone logs started.</div>
             ) : (
@@ -322,17 +306,14 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
             )}
 
             <div style={{ marginTop: 20 }}>
-              <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 8 }}>Overview Insights</h4>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 8 }}>Team Insights</h4>
               <ul style={{ paddingLeft: 16, margin: 0, fontSize: 12, color: 'var(--color-text-secondary)', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <li>
-                  Roster Size: <strong style={{ color: isSizeInvalid ? 'var(--color-danger)' : 'var(--color-text-primary)' }}>{totalMembers}</strong> members (Allowed limits: {minLimit}-{maxLimit})
-                  {isSizeInvalid && <span style={{ color: 'var(--color-danger)', fontSize: 11, marginLeft: 4 }}>(Invalid size!)</span>}
+                  Roster Size: <strong style={{ color: isSizeInvalid ? 'var(--color-danger)' : 'var(--color-text-primary)' }}>{totalMembers}</strong> members (Limits: {minLimit}-{maxLimit})
                 </li>
                 <li>Milestones Completed: <strong>{milestoneCount}/5</strong> stages</li>
-                <li>Problem Selection Attempts: <strong>{team.problemChangeCount || 0}/3</strong> select calls</li>
-                <li>Expected Project Batch Deadline: {team.batchId?.endDate ? new Date(team.batchId.endDate).toLocaleDateString() : 'N/A'}</li>
+                <li>Problem Selection Attempts: <strong>{team.problemChangeCount || 0}/3</strong></li>
               </ul>
-
               <div style={{ marginTop: 16 }}>
                 <button
                   type="button"
@@ -340,30 +321,26 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                   style={{ width: '100%', justifyContent: 'center', padding: '10px' }}
                   onClick={() => exportTeamExcel(team)}
                 >
-                  <Download size={14} /> Export Project Report (Excel)
+                  <Download size={14} /> Export Team Profile (Excel)
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Submission and evaluation info */}
           <div>
-            <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>Deliverables & Grades</h4>
+            <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>Submission & Evaluation</h4>
             <div className="glass" style={{ borderRadius: 12, padding: 16, marginBottom: 14 }}>
-              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Submission Status</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Deliverables</div>
               {submission ? (
                 <div style={{ marginTop: 6 }}>
-                  <div style={{ fontSize: 13, color: 'var(--color-text-primary)', wordBreak: 'break-all' }}>
-                    🔗 <a href={submission.githubUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-accent)' }}>GitHub Repo</a>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>
+                    🔗 <a href={submission.githubUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-accent)' }}>GitHub Repository</a>
                   </div>
                   {submission.deployedUrl && (
-                    <div style={{ fontSize: 13, color: 'var(--color-text-primary)', wordBreak: 'break-all', marginTop: 4 }}>
+                    <div style={{ fontSize: 13, color: 'var(--color-text-primary)', marginTop: 4 }}>
                       🌐 <a href={submission.deployedUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#10b981' }}>Live Deployment</a>
                     </div>
                   )}
-                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 6 }}>
-                    Submitted: {new Date(submission.submittedAt).toLocaleString()}
-                  </div>
                 </div>
               ) : (
                 <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 6 }}>No deliverables submitted yet.</div>
@@ -385,27 +362,20 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                     <div>Docs: <strong>{evaluation.criteria?.documentation || 0}/25</strong></div>
                     <div>Presentation: <strong>{evaluation.criteria?.presentation || 0}/25</strong></div>
                   </div>
-                  {evaluation.feedback && (
-                    <div style={{ marginTop: 10, fontSize: 11, fontStyle: 'italic', color: 'var(--color-text-secondary)', background: 'rgba(0,0,0,0.02)', padding: '6px 8px', borderRadius: 6 }}>
-                      &ldquo;{evaluation.feedback}&rdquo;
-                    </div>
-                  )}
                 </div>
               ) : (
-                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 6 }}>Not graded yet. Go to Evaluations tab to enter score.</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 6 }}>Not graded yet.</div>
               )}
             </div>
           </div>
         </div>
-      )}
-
-      {activeTab === 'logs' && (
+      ) : activeTab === 'logs' ? (
         <div>
           <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>Daily Work Logs</h4>
           {logsLoading ? (
             <div style={{ padding: '20px 0', textAlign: 'center' }}><LoadingSpinner /></div>
           ) : dailyLogs.length === 0 ? (
-            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>No daily work logs submitted by this team yet.</div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>No daily work logs submitted yet.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
@@ -428,7 +398,7 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                   style={{ padding: '6px 12px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
                   onClick={() => exportTeamLogsExcel(team.name, dailyLogs)}
                 >
-                  <Download size={12} /> Export Team Logs (Excel)
+                  <Download size={12} /> Export Logs (Excel)
                 </button>
               </div>
 
@@ -437,187 +407,38 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                 if (!log) return null
                 return (
                   <div className="glass" style={{ borderRadius: 12, padding: 18 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 10 }}>
                       <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>Logs for {log.date}</span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
-                          Edit Count: <strong style={{ color: log.changeCount >= 3 ? '#ef4444' : 'var(--color-text-primary)' }}>{log.changeCount}/3</strong>
-                        </span>
-                        <button
-                          type="button"
-                          className="btn-secondary"
-                          style={{ padding: '4px 10px', fontSize: 11 }}
-                          onClick={async () => {
-                            if (!window.confirm(`Reset edit limit for log date ${log.date}?`)) return
-                            try {
-                              await resetDailyLogLimit({ teamId: team._id, date: log.date })
-                              toast.success('Edit count reset successfully!')
-                              loadLogs()
-                            } catch (err) {
-                              toast.error('Failed to reset log edit limit')
-                            }
-                          }}
-                        >
-                          Reset Limit
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Daily Log Grading Section */}
-                    <div style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 16,
-                      background: 'rgba(37, 99, 235, 0.04)',
-                      border: '1px solid rgba(37, 99, 235, 0.1)',
-                      borderRadius: 10,
-                      padding: 14,
-                      marginBottom: 16
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)' }}>Grade Daily Log:</span>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          placeholder="Score (0-100)"
-                          value={logGradeInputs[log.date] !== undefined ? logGradeInputs[log.date] : (log.score !== null ? log.score : '')}
-                          onChange={e => setLogGradeInputs({ ...logGradeInputs, [log.date]: e.target.value })}
-                          style={{ width: 110, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border)', fontSize: 12, background: 'var(--color-surface)', color: 'var(--color-text-primary)' }}
-                        />
-                        <button
-                          type="button"
-                          className="btn-primary"
-                          style={{ padding: '4px 10px', fontSize: 11 }}
-                          onClick={async () => {
-                            const scoreVal = logGradeInputs[log.date]
-                            if (scoreVal === undefined || scoreVal === '') return toast.error('Please enter a score')
-                            try {
-                              await gradeDailyLog({ teamId: team._id, date: log.date, score: Number(scoreVal) })
-                              toast.success('Grade saved successfully!')
-                              loadLogs()
-                            } catch (err) {
-                              toast.error('Failed to save daily log grade')
-                            }
-                          }}
-                        >
-                          Save Grade
-                        </button>
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
-                          Status: <strong>{log.score !== null ? `Graded (${log.score}/100)` : 'Not Graded'}</strong>
-                        </span>
-                        <button
-                          type="button"
-                          className={log.isScoreReleased ? 'btn-danger' : 'btn-success'}
-                          style={{
-                            padding: '4px 10px',
-                            fontSize: 11,
-                            background: log.isScoreReleased ? '#ef4444' : '#10b981',
-                            color: '#ffffff',
-                            border: 'none',
-                            borderRadius: 6,
-                            cursor: 'pointer',
-                            fontWeight: 600
-                          }}
-                          onClick={async () => {
-                            if (log.score === null) return toast.error('Please grade the daily log first before releasing the score')
-                            try {
-                              await releaseDailyLogScore({ teamId: team._id, date: log.date, isScoreReleased: !log.isScoreReleased })
-                              toast.success(log.isScoreReleased ? 'Score hidden from student' : 'Score released to student!')
-                              loadLogs()
-                            } catch (err) {
-                              toast.error('Failed to update score release status')
-                            }
-                          }}
-                        >
-                          {log.isScoreReleased ? 'Hide Score' : 'Release Score'}
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: 11 }}
+                        onClick={async () => {
+                          if (!window.confirm(`Reset edit limit for ${log.date}?`)) return
+                          try {
+                            await resetDailyLogLimit({ teamId: team._id, date: log.date })
+                            toast.success('Edit count reset!')
+                            loadLogs()
+                          } catch (err) {
+                            toast.error('Failed to reset edit limit')
+                          }
+                        }}
+                      >
+                        Reset Edit Limit
+                      </button>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                      {log.logs.map((item, keyIdx) => {
-                        const isEditing = editingLogIdx === keyIdx
-                        return (
-                          <div key={keyIdx} style={{ padding: 10, background: 'rgba(0,0,0,0.01)', border: '1px solid rgba(0,0,0,0.04)', borderRadius: 8 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 6 }}>
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                👤 {item.name} 
-                                <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>({item.rollNumber})</span>
-                              </span>
-                              {!isEditing && (
-                                <button
-                                  type="button"
-                                  className="btn-secondary"
-                                  style={{ padding: '2px 6px', fontSize: 10, display: 'inline-flex', alignItems: 'center', gap: 2 }}
-                                  onClick={() => {
-                                    setEditingLogIdx(keyIdx)
-                                    setEditingLogText(item.taskDone || '')
-                                  }}
-                                >
-                                  <Edit size={10} /> Edit Log
-                                </button>
-                              )}
-                            </div>
-                            
-                            {isEditing ? (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-                                <textarea
-                                  className="input-dark"
-                                  rows={3}
-                                  style={{ width: '100%', fontSize: 12, padding: 8 }}
-                                  value={editingLogText}
-                                  onChange={e => setEditingLogText(e.target.value)}
-                                  placeholder="Type work log override description..."
-                                />
-                                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                                  <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    style={{ padding: '4px 10px', fontSize: 11 }}
-                                    onClick={() => setEditingLogIdx(null)}
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="btn-primary"
-                                    style={{ padding: '4px 10px', fontSize: 11 }}
-                                    onClick={async () => {
-                                      try {
-                                        const updatedLogs = log.logs.map((item2, idx2) => 
-                                          idx2 === keyIdx ? { ...item2, taskDone: editingLogText } : item2
-                                        )
-                                        await overrideDailyLog({
-                                          teamId: team._id,
-                                          date: log.date,
-                                          logs: updatedLogs
-                                        })
-                                        toast.success('Daily log description updated!')
-                                        setEditingLogIdx(null)
-                                        loadLogs()
-                                      } catch (err) {
-                                        toast.error('Failed to override daily log')
-                                      }
-                                    }}
-                                  >
-                                    Save Override
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'pre-wrap' }}>
-                                {item.taskDone || '(No work logged)'}
-                              </p>
-                            )}
+                      {log.logs.map((item, keyIdx) => (
+                        <div key={keyIdx} style={{ padding: 10, background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 8 }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 4 }}>
+                            👤 {item.name} <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>({item.rollNumber})</span>
                           </div>
-                        )
-                      })}
+                          <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-secondary)', whiteSpace: 'pre-wrap' }}>
+                            {item.taskDone || '(No work logged)'}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )
@@ -625,52 +446,24 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
             </div>
           )}
         </div>
-      )}
-
-      {activeTab === 'docs' && (
+      ) : (
         <div>
           <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>Uploaded Documents</h4>
           {docsLoading ? (
             <div style={{ padding: '20px 0', textAlign: 'center' }}><LoadingSpinner /></div>
           ) : docSubmissions.length === 0 ? (
-            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>No documents submitted by this team yet.</div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>No documents submitted yet.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {docSubmissions.map((doc, idx) => (
                 <div key={idx} className="glass" style={{ borderRadius: 12, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>{doc.requestId?.title || 'Document Submission'}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>{doc.requestId?.title || 'Document'}</div>
                     <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>{doc.fileName} ({doc.fileSize} MB)</div>
-                    <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 4 }}>Uploaded on {new Date(doc.updatedAt).toLocaleString()}</div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <a
-                      href={doc.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-primary"
-                      style={{ padding: '6px 12px', fontSize: 12, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                    >
-                      <Download size={12} /> Download
-                    </a>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      style={{ padding: '6px 12px', fontSize: 12 }}
-                      onClick={async () => {
-                        if (!window.confirm(`Reset upload attempt count for "${doc.requestId?.title || 'this document'}"?`)) return
-                        try {
-                          await resetSubmissionLimit({ teamId: team._id, requestId: doc.requestId?._id })
-                          toast.success('Upload limit reset successfully!')
-                          loadDocs()
-                        } catch (err) {
-                          toast.error('Failed to reset upload limit')
-                        }
-                      }}
-                    >
-                      Reset Limit ({doc.changeCount || 0}/3)
-                    </button>
-                  </div>
+                  <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ padding: '6px 12px', fontSize: 12, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Download size={12} /> Download
+                  </a>
                 </div>
               ))}
             </div>
@@ -678,6 +471,116 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
         </div>
       )}
     </div>
+  )
+}
+
+// Expandable Modern Team Card Component
+function ExpandableTeamCard({ team, onSelect, onExport, onDelete, isOverdue }) {
+  const memberCount = (team.members?.length || 0) + 1
+  
+  // Dynamic Card Styles
+  const getCardAccent = (status, overdue) => {
+    if (overdue) return { border: '1px solid rgba(239,68,68,0.4)', bg: 'rgba(239,68,68,0.05)', color: '#ef4444' }
+    if (status === 'submitted') return { border: '1px solid rgba(62,207,142,0.4)', bg: 'rgba(62,207,142,0.05)', color: '#3ecf8e' }
+    if (status === 'in_progress') return { border: '1px solid rgba(59,130,246,0.4)', bg: 'rgba(59,130,246,0.05)', color: '#3b82f6' }
+    return { border: '1px solid rgba(245,158,11,0.4)', bg: 'rgba(245,158,11,0.05)', color: '#f59e0b' }
+  }
+
+  const accent = getCardAccent(team.status, isOverdue)
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      whileHover={{ y: -4 }}
+      className="glass"
+      style={{
+        borderRadius: 18,
+        padding: 20,
+        border: accent.border,
+        background: 'var(--color-surface-2)',
+        display: 'flex',
+        flexDirection: 'column',
+        justify: 'space-between',
+        gap: 16,
+        position: 'relative',
+        boxShadow: '0 8px 30px rgba(0,0,0,0.12)'
+      }}
+    >
+      {/* Top Banner Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text-primary)', letterSpacing: '-0.02em' }}>
+              {team.name}
+            </span>
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <UserCheck size={13} style={{ color: 'var(--color-accent)' }} /> Lead: <strong style={{ color: 'var(--color-text-primary)' }}>{team.leadUsername}</strong>
+          </div>
+        </div>
+        <StatusBadge status={isOverdue ? 'overdue' : team.status} />
+      </div>
+
+      {/* Problem Statement Card Info */}
+      <div style={{ background: 'rgba(0,0,0,0.2)', padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+          Allocated Problem
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: team.problemStatementId?.title ? 'var(--color-text-primary)' : 'var(--color-text-muted)', lineHeight: 1.4 }}>
+          {team.problemStatementId?.title || '⚠️ Problem Statement Pending Selection'}
+        </div>
+      </div>
+
+      {/* Team Roster & College Chips */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', fontSize: 12, color: 'var(--color-text-secondary)' }}>
+        <span className="badge badge-blue" style={{ padding: '4px 10px', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <Users size={12} /> {memberCount} Members
+        </span>
+        {team.collegeId?.name && (
+          <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '3px 8px', borderRadius: 6 }}>
+            🏫 {team.collegeId.name}
+          </span>
+        )}
+        {team.batchId?.name && (
+          <span style={{ fontSize: 11, color: 'var(--color-text-muted)', background: 'rgba(255,255,255,0.05)', padding: '3px 8px', borderRadius: 6 }}>
+            📦 {team.batchId.name}
+          </span>
+        )}
+      </div>
+
+      {/* Action Footer Buttons */}
+      <div style={{ display: 'flex', gap: 8, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 14, marginTop: 4 }}>
+        <button
+          type="button"
+          className="btn-primary"
+          style={{ flex: 1, padding: '8px 12px', fontSize: 12, justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          onClick={() => onSelect(team)}
+        >
+          <Edit size={13} /> Manage Team
+        </button>
+        <button
+          type="button"
+          className="btn-secondary"
+          style={{ padding: '8px 12px', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+          onClick={() => onExport(team)}
+          title="Export Excel Dossier"
+        >
+          <Download size={13} /> Excel
+        </button>
+        <button
+          type="button"
+          className="btn-danger"
+          style={{ padding: '8px 12px', fontSize: 12 }}
+          onClick={() => onDelete(team._id)}
+          title="Delete Team"
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
+    </motion.div>
   )
 }
 
@@ -690,6 +593,7 @@ export default function TeamsPage() {
   const [selectedCollegeId, setSelectedCollegeId] = useState('')
   const [selectedSubjectId, setSelectedSubjectId] = useState('')
   const [selectedBatchId, setSelectedBatchId] = useState('')
+  const [viewMode, setViewMode] = useState('cards') // 'cards' or 'table'
 
   const [teams, setTeams] = useState([])
   const [teamsLoading, setTeamsLoading] = useState(false)
@@ -717,7 +621,6 @@ export default function TeamsPage() {
 
   useEffect(() => { loadMetadata() }, [])
 
-  // Load teams when Batch changes
   const loadTeams = () => {
     if (selectedBatchId) {
       setTeamsLoading(true)
@@ -753,7 +656,7 @@ export default function TeamsPage() {
     setSaving(true)
     try {
       await createTeam(form)
-      toast.success('Team created!')
+      toast.success('Team account created!')
       setCreateModalOpen(false)
       loadTeams()
     } catch (err) {
@@ -763,14 +666,23 @@ export default function TeamsPage() {
     }
   }
 
-  // Filter batches dropdown based on selected college & subject
+  const handleDeleteTeamInline = async (teamId) => {
+    if (!window.confirm('Delete this team entirely? This action cannot be undone.')) return
+    try {
+      await deleteTeam(teamId)
+      toast.success('Team deleted!')
+      loadTeams()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete team')
+    }
+  }
+
   const availableBatches = batches.filter(b => {
     if (selectedCollegeId && b.collegeId?._id !== selectedCollegeId) return false
     if (selectedSubjectId && b.subjectId?._id !== selectedSubjectId) return false
     return true
   })
 
-  // Auto reset batch selection if not in available batches
   useEffect(() => {
     if (selectedBatchId && !availableBatches.some(b => b._id === selectedBatchId)) {
       setSelectedBatchId('')
@@ -791,37 +703,37 @@ export default function TeamsPage() {
   return (
     <div>
       <SectionHeader
-        title="All Teams"
-        subtitle="Manage capstone teams and accounts by selecting project details"
+        title="Capstone Team Directory"
+        subtitle="Manage student teams, accounts, milestone progress & daily work logs"
         action={
           <button id="add-team-btn" className="btn-primary" onClick={() => setCreateModalOpen(true)}>
-            <Plus size={16} /> Create Team (TL Account)
+            <Plus size={16} /> Create Team & TL Account
           </button>
         }
       />
 
-      {/* Select Filter Controls */}
-      <div className="glass" style={{ borderRadius: 16, padding: 20, marginBottom: 24 }}>
+      {/* Scope Selector Filters */}
+      <div className="glass" style={{ borderRadius: 16, padding: 20, marginBottom: 24, background: 'var(--color-surface-2)' }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Filter size={14} style={{ color: 'var(--color-accent)' }} /> Project Scope Selection
+          <Filter size={14} style={{ color: 'var(--color-accent)' }} /> Project Scope & Course Filter
         </div>
         <div className="form-grid-responsive" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           <div>
             <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', display: 'block', marginBottom: 6 }}>1. Select College</label>
             <select className="input-dark" value={selectedCollegeId} onChange={e => setSelectedCollegeId(e.target.value)}>
-              <option value="">Choose College...</option>
+              <option value="">All Colleges...</option>
               {colleges.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', display: 'block', marginBottom: 6 }}>2. Select Course</label>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', display: 'block', marginBottom: 6 }}>2. Select Course / Subject</label>
             <select className="input-dark" value={selectedSubjectId} onChange={e => setSelectedSubjectId(e.target.value)}>
-              <option value="">Choose Course...</option>
+              <option value="">All Courses...</option>
               {subjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', display: 'block', marginBottom: 6 }}>3. Select Batch / Project</label>
+            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-secondary)', display: 'block', marginBottom: 6 }}>3. Select Active Batch</label>
             <select className="input-dark" value={selectedBatchId} onChange={e => setSelectedBatchId(e.target.value)} disabled={!selectedCollegeId && !selectedSubjectId}>
               <option value="">Choose Batch...</option>
               {availableBatches.map(b => (
@@ -832,70 +744,138 @@ export default function TeamsPage() {
         </div>
       </div>
 
-      {/* Search and status controls */}
+      {/* Control Bar: View Switcher, Search & Status Filters */}
       {selectedBatchId && (
-        <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ position: 'relative', flex: '1 1 200px' }}>
-            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
-            <input className="input-dark" style={{ paddingLeft: 34 }} placeholder="Search teams in batch..." value={filter.q} onChange={e => setFilter(f => ({ ...f, q: e.target.value }))} />
+        <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: 10, flex: '1 1 300px', alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+              <input className="input-dark" style={{ paddingLeft: 34 }} placeholder="Search teams or leads..." value={filter.q} onChange={e => setFilter(f => ({ ...f, q: e.target.value }))} />
+            </div>
+            <select className="input-dark" style={{ width: 'auto' }} value={filter.status} onChange={e => setFilter(f => ({ ...f, status: e.target.value }))}>
+              <option value="">All Statuses</option>
+              <option value="submitted">Submitted</option>
+              <option value="in_progress">In Progress</option>
+              <option value="problem_pending">Pending Problem</option>
+              <option value="overdue">Overdue</option>
+            </select>
           </div>
-          <select className="input-dark" style={{ width: 'auto', flex: '0 0 auto' }} value={filter.status} onChange={e => setFilter(f => ({ ...f, status: e.target.value }))}>
-            <option value="">All Status</option>
-            <option value="submitted">Submitted</option>
-            <option value="in_progress">In Progress</option>
-            <option value="problem_pending">Pending</option>
-            <option value="overdue">Overdue</option>
-          </select>
-          <button
-            type="button"
-            className="btn-secondary"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}
-            onClick={handleExportAllLogs}
-          >
-            <Download size={14} /> Export All Daily Logs (Excel)
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* View Mode Toggle */}
+            <div style={{ display: 'flex', background: 'var(--color-surface)', padding: 3, borderRadius: 10, border: '1px solid var(--color-border)' }}>
+              <button
+                type="button"
+                onClick={() => setViewMode('cards')}
+                style={{
+                  background: viewMode === 'cards' ? 'var(--color-accent)' : 'transparent',
+                  color: viewMode === 'cards' ? '#ffffff' : 'var(--color-text-secondary)',
+                  border: 'none',
+                  borderRadius: 7,
+                  padding: '6px 12px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+              >
+                <LayoutGrid size={14} /> Cards
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                style={{
+                  background: viewMode === 'table' ? 'var(--color-accent)' : 'transparent',
+                  color: viewMode === 'table' ? '#ffffff' : 'var(--color-text-secondary)',
+                  border: 'none',
+                  borderRadius: 7,
+                  padding: '6px 12px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+              >
+                <List size={14} /> Table
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              onClick={handleExportAllLogs}
+            >
+              <Download size={14} /> Export All Logs (Excel)
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Main content body */}
+      {/* Content Display */}
       {!selectedBatchId ? (
-        <div className="glass" style={{ borderRadius: 16, padding: '40px 20px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
-          <AlertCircle size={32} style={{ color: 'var(--color-text-muted)', margin: '0 auto 12px', display: 'block' }} />
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)' }}>No batch selected</div>
-          <div style={{ fontSize: 13, marginTop: 4 }}>Select a college, course, and batch using the filters above to load Capstone teams.</div>
+        <div className="glass" style={{ borderRadius: 16, padding: '48px 20px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+          <AlertCircle size={36} style={{ color: 'var(--color-accent)', margin: '0 auto 14px', display: 'block' }} />
+          <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text-primary)' }}>Select College & Batch</div>
+          <div style={{ fontSize: 13, marginTop: 6, maxWidth: 460, margin: '6px auto 0' }}>
+            Choose a college, course, and active batch using the selector above to display student capstone teams.
+          </div>
         </div>
       ) : teamsLoading ? (
         <div style={{ textAlign: 'center', padding: '40px 0' }}><LoadingSpinner /></div>
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Users} title="No teams found" description="No teams match your batch or search query." />
+        <EmptyState icon={Users} title="No teams found" description="No teams match your selected batch or search query." />
+      ) : viewMode === 'cards' ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
+          <AnimatePresence>
+            {filtered.map(team => {
+              const isOverdue = team.batchId?.endDate && new Date(team.batchId.endDate) < now && team.status !== 'submitted'
+              return (
+                <ExpandableTeamCard
+                  key={team._id}
+                  team={team}
+                  isOverdue={isOverdue}
+                  onSelect={(t) => { setSelectedTeam(t); setDetailsModalOpen(true) }}
+                  onExport={exportTeamExcel}
+                  onDelete={handleDeleteTeamInline}
+                />
+              )
+            })}
+          </AnimatePresence>
+        </div>
       ) : (
         <div className="glass" style={{ borderRadius: 16, overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
             <table className="table-dark w-full" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr><th>Team</th><th>Lead</th><th>Size</th><th>College</th><th>Batch</th><th>Problem</th><th>Status</th></tr>
+                <tr><th>Team Name</th><th>Lead Username</th><th>Roster</th><th>College</th><th>Batch</th><th>Allocated Problem</th><th>Status</th><th>Actions</th></tr>
               </thead>
               <tbody>
                 {filtered.map(team => {
                   const isOverdue = team.batchId?.endDate && new Date(team.batchId.endDate) < now && team.status !== 'submitted'
                   return (
                     <tr key={team._id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedTeam(team); setDetailsModalOpen(true) }}>
-                      <td>
-                        <span style={{ fontWeight: 600, color: 'var(--color-accent)', textDecoration: 'underline' }}>{team.name}</span>
-                      </td>
+                      <td><span style={{ fontWeight: 700, color: 'var(--color-accent)' }}>{team.name}</span></td>
                       <td style={{ color: 'var(--color-text-secondary)', fontFamily: 'monospace', fontSize: 12 }}>{team.leadUsername}</td>
-                      <td>
-                        <span className="badge badge-blue">{(team.members?.length || 0) + 1} members</span>
-                      </td>
+                      <td><span className="badge badge-blue">{(team.members?.length || 0) + 1} members</span></td>
                       <td style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>{team.collegeId?.name}</td>
                       <td style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>{team.batchId?.name}</td>
-                      <td style={{ maxWidth: 180 }}>
+                      <td style={{ maxWidth: 200 }}>
                         {team.problemStatementId?.title
                           ? <span style={{ color: 'var(--color-text-primary)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{team.problemStatementId.title}</span>
                           : <span style={{ color: 'var(--color-text-muted)', fontSize: 12 }}>Not selected</span>
                         }
                       </td>
                       <td><StatusBadge status={isOverdue ? 'overdue' : team.status} /></td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <button className="btn-secondary" style={{ padding: '4px 8px', fontSize: 11 }} onClick={() => { setSelectedTeam(team); setDetailsModalOpen(true) }}>
+                          Manage
+                        </button>
+                      </td>
                     </tr>
                   )
                 })}
@@ -905,13 +885,12 @@ export default function TeamsPage() {
         </div>
       )}
 
-      {/* Create Team Modal */}
-      <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Create Team & TL Account">
+      {/* Modals */}
+      <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Create Team & Credentials">
         <CreateTeamForm batches={batches} defaultBatchId={selectedBatchId} onSubmit={handleCreateTeam} loading={saving} />
       </Modal>
 
-      {/* Details & CRUD Operations Modal */}
-      <Modal isOpen={detailsModalOpen} onClose={() => setDetailsModalOpen(false)} title={selectedTeam ? `Team Profile Dashboard: ${selectedTeam.name}` : 'Team Details'} wide>
+      <Modal isOpen={detailsModalOpen} onClose={() => setDetailsModalOpen(false)} title={selectedTeam ? `Team Profile: ${selectedTeam.name}` : 'Team Details'} wide>
         {selectedTeam && (
           <TeamDetailsModal
             team={selectedTeam}
