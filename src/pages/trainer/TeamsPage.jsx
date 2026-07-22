@@ -94,6 +94,18 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
     }
   }
 
+  const handleExport = async () => {
+    const loader = toast.loading('Fetching team logs...');
+    try {
+      const res = await getTeamDailyLogs(team._id);
+      toast.dismiss(loader);
+      await exportTeamExcel(team, res.data.data || []);
+    } catch {
+      toast.dismiss(loader);
+      await exportTeamExcel(team, []);
+    }
+  }
+
   const [docSubmissions, setDocSubmissions] = useState([])
   const [docsLoading, setDocsLoading] = useState(false)
 
@@ -319,7 +331,7 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                   type="button"
                   className="btn-secondary w-full"
                   style={{ width: '100%', justifyContent: 'center', padding: '10px' }}
-                  onClick={() => exportTeamExcel(team)}
+                  onClick={handleExport}
                 >
                   <Download size={14} /> Export Team Profile (Excel)
                 </button>
@@ -619,6 +631,18 @@ export default function TeamsPage() {
       .finally(() => setLoading(false))
   }
 
+  const handleExportTeamExcel = async (team) => {
+    const loader = toast.loading('Fetching team logs...');
+    try {
+      const res = await getTeamDailyLogs(team._id);
+      toast.dismiss(loader);
+      await exportTeamExcel(team, res.data.data || []);
+    } catch {
+      toast.dismiss(loader);
+      await exportTeamExcel(team, []);
+    }
+  }
+
   useEffect(() => { loadMetadata() }, [])
 
   const loadTeams = () => {
@@ -840,7 +864,7 @@ export default function TeamsPage() {
                   team={team}
                   isOverdue={isOverdue}
                   onSelect={(t) => { setSelectedTeam(t); setDetailsModalOpen(true) }}
-                  onExport={exportTeamExcel}
+                  onExport={handleExportTeamExcel}
                   onDelete={handleDeleteTeamInline}
                 />
               )

@@ -8,7 +8,8 @@ import {
 import toast from 'react-hot-toast'
 import {
   getBatch, getProblems, getAllTeams, createTeam, adminOverrideTeam, updateBatch,
-  uploadBatchTemplate, deleteBatchTemplate, deleteTeam
+  uploadBatchTemplate, deleteBatchTemplate, deleteTeam,
+  getAllSubmissions, getAllEvaluations, getAllDailyLogs, getTeamDailyLogs
 } from '../../services/api'
 import { exportTeamExcel, exportProjectExcel } from '../../utils/excelExport'
 import {
@@ -368,7 +369,51 @@ export default function ProjectDetailsPage() {
         subtitle={`Capstone Project Workspace`}
         action={
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn-secondary" onClick={() => exportProjectExcel(project, teams)}>
+            <button
+              className="btn-secondary"
+              onClick={async () => {
+                const loader = toast.loading('Compiling project master spreadsheet...');
+                try {
+                  const [subRes, evalRes, logsRes] = await Promise.all([
+                    getAllSubmissions({ batchId: projectId }),
+                    getAllEvaluations({ batchId: projectId }),
+                    getAllDailyLogs()
+                  ]);
+
+                  // Map submissions by teamId
+                  const submissionsMap = {};
+                  subRes.data.data.forEach(s => {
+                    const tId = s.teamId?._id || s.teamId;
+                    if (tId) submissionsMap[tId] = s;
+                  });
+
+                  // Map evaluations by teamId
+                  const evaluationsMap = {};
+                  evalRes.data.data.forEach(e => {
+                    const tId = e.teamId?._id || e.teamId;
+                    if (tId) evaluationsMap[tId] = e;
+                  });
+
+                  // Group logs by teamId
+                  const logsByTeamMap = {};
+                  logsRes.data.data.forEach(logDay => {
+                    const tId = logDay.teamId?._id || logDay.teamId;
+                    if (tId) {
+                      if (!logsByTeamMap[tId]) logsByTeamMap[tId] = [];
+                      logsByTeamMap[tId].push(logDay);
+                    }
+                  });
+
+                  toast.dismiss(loader);
+                  await exportProjectExcel(project, teams, submissionsMap, evaluationsMap, logsByTeamMap);
+                  toast.success('Project spreadsheet exported!');
+                } catch (err) {
+                  toast.dismiss(loader);
+                  toast.error('Failed to compile project data');
+                  await exportProjectExcel(project, teams);
+                }
+              }}
+            >
               <Download size={16} /> Export Project (Excel)
             </button>
             <button className="btn-primary" onClick={() => setCreateModal(true)}>
