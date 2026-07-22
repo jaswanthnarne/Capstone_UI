@@ -59,7 +59,7 @@ export default function TeamHomePage() {
     <div>
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-primary)', margin: 0, letterSpacing: -1 }}>My Team</h1>
-        <p style={{ color: 'var(--color-text-secondary)', fontSize: 14, marginTop: 6 }}>Team dashboard for {team.leadUsername}</p>
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: 14, marginTop: 6 }}>Team dashboard for {team.leadName || team.leadUsername}</p>
       </div>
 
       {isSizeInvalid && (
@@ -84,7 +84,7 @@ export default function TeamHomePage() {
 
           <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
-              { label: 'Team Lead', value: team.leadUsername },
+              { label: 'Team Lead', value: team.leadName || team.leadUsername },
               { label: 'Email', value: team.email },
               { label: 'College', value: team.collegeId?.name },
               { label: 'Batch', value: team.batchId?.name },
@@ -152,7 +152,7 @@ export default function TeamHomePage() {
             {/* Team Lead */}
             <tr style={{ background: 'var(--color-accent-dim)' }}>
               <td style={{ color: 'var(--color-accent)', fontWeight: 'bold' }}>Lead</td>
-              <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{team.leadUsername} (You)</td>
+              <td style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{team.leadName || team.leadUsername} (You)</td>
               <td style={{ fontFamily: 'monospace', color: 'var(--color-text-secondary)' }}>{team.usnRollNumber || '—'}</td>
               <td style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>{team.email}</td>
               <td><span className="badge badge-blue">Team Lead</span></td>

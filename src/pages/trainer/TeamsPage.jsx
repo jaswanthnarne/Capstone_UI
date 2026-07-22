@@ -58,7 +58,14 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
     email: team.email || '',
     password: '',
     problemStatementId: team.problemStatementId?._id || team.problemStatementId || '',
-    status: team.status || 'problem_pending'
+    status: team.status || 'problem_pending',
+    leadName: team.leadName || '',
+    usnRollNumber: team.usnRollNumber || '',
+    mobile: team.mobile || '',
+    dept: team.dept || '',
+    division: team.division || '',
+    roomNumber: team.roomNumber || '',
+    courseName: team.courseName || ''
   })
   const [members, setMembers] = useState(team.members || [])
   const [milestones, setMilestones] = useState([])
@@ -235,14 +242,35 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
             <FormField label="Team Name">
               <input className="input-dark" value={form.name} onChange={e => set('name', e.target.value)} required />
             </FormField>
-            <FormField label="Lead Username">
+            <FormField label="Lead Account Username">
               <input className="input-dark" value={form.leadUsername} onChange={e => set('leadUsername', e.target.value)} required />
             </FormField>
-            <FormField label="Lead Email">
+            <FormField label="Lead Login Email">
               <input className="input-dark" type="email" value={form.email} onChange={e => set('email', e.target.value)} required />
             </FormField>
             <FormField label="Reset Password (optional)">
               <input className="input-dark" type="password" placeholder="Leave blank to keep current" value={form.password} onChange={e => set('password', e.target.value)} />
+            </FormField>
+            <FormField label="Lead Student Full Name">
+              <input className="input-dark" value={form.leadName} onChange={e => set('leadName', e.target.value)} placeholder="Team Lead Name" />
+            </FormField>
+            <FormField label="Lead USN / Reg No">
+              <input className="input-dark" value={form.usnRollNumber} onChange={e => set('usnRollNumber', e.target.value)} placeholder="Lead USN" />
+            </FormField>
+            <FormField label="Lead Contact Mobile">
+              <input className="input-dark" value={form.mobile} onChange={e => set('mobile', e.target.value)} placeholder="Lead Mobile" />
+            </FormField>
+            <FormField label="Lead Department">
+              <input className="input-dark" value={form.dept} onChange={e => set('dept', e.target.value)} placeholder="Lead Dept" />
+            </FormField>
+            <FormField label="Lead Division">
+              <input className="input-dark" value={form.division} onChange={e => set('division', e.target.value)} placeholder="Lead Division" />
+            </FormField>
+            <FormField label="Lead Training Room">
+              <input className="input-dark" value={form.roomNumber} onChange={e => set('roomNumber', e.target.value)} placeholder="Lead Room" />
+            </FormField>
+            <FormField label="Lead Course Name">
+              <input className="input-dark" value={form.courseName} onChange={e => set('courseName', e.target.value)} placeholder="Lead Course" />
             </FormField>
             <FormField label="Allocated Problem Statement">
               <select className="input-dark" value={form.problemStatementId} onChange={e => set('problemStatementId', e.target.value)}>
@@ -268,6 +296,20 @@ function TeamDetailsModal({ team, onClose, problems, onUpdate, onDelete }) {
                 + Add Member
               </button>
             </div>
+            {/* Team Lead Read-only Roster view */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr auto', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+              <div className="input-dark" style={{ fontSize: 12, padding: '8px 10px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', color: 'var(--color-accent)', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                👑 Lead: {form.leadName || 'No Name Set'}
+              </div>
+              <div className="input-dark" style={{ fontSize: 12, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {form.usnRollNumber || 'No Roll No'}
+              </div>
+              <div className="input-dark" style={{ fontSize: 12, padding: '8px 10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {form.email || 'No Email'}
+              </div>
+              <div style={{ padding: '0 8px', fontSize: 11, color: 'var(--color-accent)', fontWeight: 700 }}>Lead</div>
+            </div>
+
             {members.map((m, i) => (
               <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr auto', gap: 8, marginBottom: 8 }}>
                 <input className="input-dark" style={{ fontSize: 12 }} placeholder="Student Name" value={m.name} onChange={e => updateMember(i, 'name', e.target.value)} required />
@@ -530,7 +572,7 @@ function ExpandableTeamCard({ team, onSelect, onExport, onDelete, isOverdue }) {
             </span>
           </div>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <UserCheck size={13} style={{ color: 'var(--color-accent)' }} /> Lead: <strong style={{ color: 'var(--color-text-primary)' }}>{team.leadUsername}</strong>
+            <UserCheck size={13} style={{ color: 'var(--color-accent)' }} /> Lead: <strong style={{ color: 'var(--color-text-primary)' }}>{team.leadName || team.leadUsername}</strong>
           </div>
         </div>
         <StatusBadge status={isOverdue ? 'overdue' : team.status} />
@@ -876,7 +918,7 @@ export default function TeamsPage() {
           <div style={{ overflowX: 'auto' }}>
             <table className="table-dark w-full" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr><th>Team Name</th><th>Lead Username</th><th>Roster</th><th>College</th><th>Batch</th><th>Allocated Problem</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>Team Name</th><th>Team Lead</th><th>Roster</th><th>College</th><th>Batch</th><th>Allocated Problem</th><th>Status</th><th>Actions</th></tr>
               </thead>
               <tbody>
                 {filtered.map(team => {
@@ -884,7 +926,10 @@ export default function TeamsPage() {
                   return (
                     <tr key={team._id} style={{ cursor: 'pointer' }} onClick={() => { setSelectedTeam(team); setDetailsModalOpen(true) }}>
                       <td><span style={{ fontWeight: 700, color: 'var(--color-accent)' }}>{team.name}</span></td>
-                      <td style={{ color: 'var(--color-text-secondary)', fontFamily: 'monospace', fontSize: 12 }}>{team.leadUsername}</td>
+                      <td>
+                        <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{team.leadName || '—'}</div>
+                        <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontFamily: 'monospace' }}>{team.leadUsername}</div>
+                      </td>
                       <td><span className="badge badge-blue">{(team.members?.length || 0) + 1} members</span></td>
                       <td style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>{team.collegeId?.name}</td>
                       <td style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>{team.batchId?.name}</td>

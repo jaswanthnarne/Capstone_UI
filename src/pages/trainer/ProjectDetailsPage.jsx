@@ -75,7 +75,14 @@ function OverrideTeamForm({ team, problems, onSubmit, loading }) {
     email: team.email || '',
     password: '',
     problemStatementId: team.problemStatementId?._id || team.problemStatementId || '',
-    status: team.status || 'problem_pending'
+    status: team.status || 'problem_pending',
+    leadName: team.leadName || '',
+    usnRollNumber: team.usnRollNumber || '',
+    mobile: team.mobile || '',
+    dept: team.dept || '',
+    division: team.division || '',
+    roomNumber: team.roomNumber || '',
+    courseName: team.courseName || ''
   })
   const [members, setMembers] = useState(team.members || [])
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -97,6 +104,27 @@ function OverrideTeamForm({ team, problems, onSubmit, loading }) {
       </FormField>
       <FormField label="Reset Password (optional)">
         <input className="input-dark" type="password" placeholder="Leave empty to keep current" value={form.password} onChange={e => set('password', e.target.value)} />
+      </FormField>
+      <FormField label="Lead Student Full Name">
+        <input className="input-dark" value={form.leadName} onChange={e => set('leadName', e.target.value)} placeholder="Lead Real Name" />
+      </FormField>
+      <FormField label="Lead USN / Reg No">
+        <input className="input-dark" value={form.usnRollNumber} onChange={e => set('usnRollNumber', e.target.value)} placeholder="Lead USN" />
+      </FormField>
+      <FormField label="Lead Contact Mobile">
+        <input className="input-dark" value={form.mobile} onChange={e => set('mobile', e.target.value)} placeholder="Lead Mobile" />
+      </FormField>
+      <FormField label="Lead Department">
+        <input className="input-dark" value={form.dept} onChange={e => set('dept', e.target.value)} placeholder="Lead Dept" />
+      </FormField>
+      <FormField label="Lead Division">
+        <input className="input-dark" value={form.division} onChange={e => set('division', e.target.value)} placeholder="Lead Division" />
+      </FormField>
+      <FormField label="Lead Training Room">
+        <input className="input-dark" value={form.roomNumber} onChange={e => set('roomNumber', e.target.value)} placeholder="Lead Room" />
+      </FormField>
+      <FormField label="Lead Course Name">
+        <input className="input-dark" value={form.courseName} onChange={e => set('courseName', e.target.value)} placeholder="Lead Course" />
       </FormField>
       <FormField label="Allocated Problem Statement">
         <select className="input-dark" value={form.problemStatementId} onChange={e => set('problemStatementId', e.target.value)}>
@@ -121,6 +149,21 @@ function OverrideTeamForm({ team, problems, onSubmit, loading }) {
             + Add Member
           </button>
         </div>
+        
+        {/* Team Lead Read-only Roster view */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr auto', gap: 6, marginBottom: 8, alignItems: 'center' }}>
+          <div className="input-dark" style={{ fontSize: 12, padding: '6px 8px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', color: 'var(--color-accent)', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            👑 Lead: {form.leadName || 'No Name Set'}
+          </div>
+          <div className="input-dark" style={{ fontSize: 12, padding: '6px 8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {form.usnRollNumber || 'No Roll No'}
+          </div>
+          <div className="input-dark" style={{ fontSize: 12, padding: '6px 8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {form.email || 'No Email'}
+          </div>
+          <div style={{ padding: '0 8px', fontSize: 11, color: 'var(--color-accent)', fontWeight: 700 }}>Lead</div>
+        </div>
+
         {members.map((m, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr auto', gap: 6, marginBottom: 8 }}>
             <input className="input-dark" style={{ fontSize: 12 }} placeholder="Name" value={m.name} onChange={e => updateMember(i, 'name', e.target.value)} required />
@@ -533,7 +576,7 @@ export default function ProjectDetailsPage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                         <div>
                           <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-text-primary)' }}>{team.name}</div>
-                          <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 1 }}>Username: {team.leadUsername}</div>
+                          <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 1 }}>Lead: {team.leadName || team.leadUsername}</div>
                         </div>
                         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                           <StatusBadge status={team.status} />
